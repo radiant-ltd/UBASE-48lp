@@ -257,8 +257,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 // 設定方法はubase-gas-guide.txtを参照
 const GAS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
-// ユーザー識別子（LINEから来た場合はURLパラメータで渡す）
-const USER_ID = new URLSearchParams(location.search).get('uid') || '不明';
+// ユーザーID（LINE個人識別なし・アクセス数の計測のみ）
+const USER_ID = '訪問者';
 
 function sendEvent(event, data) {
   if (!GAS_URL.includes('YOUR_SCRIPT_ID')) {
