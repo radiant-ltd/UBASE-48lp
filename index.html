@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UBASE ― 48時間限定 詳細動画</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #0D1B2E; --navy2: #162340;
+  --red: #D9323B; --white: #F5F5F0;
+  --gray: #9AA3B0; --border: rgba(255,255,255,0.08);
+  --line: #06C755;
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--navy);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  background: rgba(13,27,46,0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 4px;
+  color: var(--white);
+}
+.header-logo em { font-style: normal; color: var(--red); }
+.header-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(217,50,59,0.1);
+  border: 1px solid rgba(217,50,59,0.35);
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--red);
+  font-weight: 700;
+}
+.header-badge-dot {
+  width: 7px; height: 7px;
+  background: var(--red);
+  border-radius: 50%;
+  animation: blink 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* ── COUNTDOWN ── */
+.countdown-bar {
+  background: var(--navy2);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.countdown-label {
+  font-size: 11px;
+  color: var(--gray);
+  letter-spacing: 1px;
+}
+.countdown-timer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.countdown-unit {
+  text-align: center;
+}
+.countdown-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: var(--red);
+  line-height: 1;
+  display: block;
+  min-width: 40px;
+}
+.countdown-unit-label {
+  font-size: 9px;
+  color: var(--gray);
+  letter-spacing: 1px;
+  display: block;
+}
+.countdown-sep {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: rgba(217,50,59,0.4);
+  padding-bottom: 10px;
+}
+
+/* ── MAIN ── */
+.main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* ── INTRO ── */
+.intro {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.intro-eyebrow {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--red);
+  margin-bottom: 12px;
+}
+.intro h1 {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight: 900;
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+.intro h1 em { font-style: normal; color: var(--red); }
+.intro p {
+  font-size: 13px;
+  color: var(--gray);
+  line-height: 1.85;
+}
+
+/* ── VIDEO CARDS ── */
+.video-card {
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.video-card.active { border-color: rgba(217,50,59,0.5); }
+.video-card.locked { opacity: 0.5; }
+
+.video-card-header {
+  background: var(--navy2);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.video-card.active .video-card-header {
+  border-bottom-color: rgba(217,50,59,0.3);
+}
+
+.video-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  color: rgba(217,50,59,0.25);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.video-card.active .video-num { color: var(--red); }
+
+.video-info { flex: 1; }
+.video-chapter {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gray);
+  margin-bottom: 3px;
+}
+.video-card.active .video-chapter { color: rgba(217,50,59,0.8); }
+.video-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.video-duration {
+  font-size: 11px;
+  color: var(--gray);
+  flex-shrink: 0;
+}
+
+.video-status {
+  padding: 4px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.status-watching {
+  background: rgba(217,50,59,0.15);
+  border: 1px solid rgba(217,50,59,0.4);
+  color: var(--red);
+}
+.status-locked {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--gray);
+}
+.status-done {
+  background: rgba(6,199,85,0.12);
+  border: 1px solid rgba(6,199,85,0.35);
+  color: var(--line);
+}
+
+/* ── VIDEO EMBED ── */
+.video-embed-wrap {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  background: #000;
+}
+.video-embed-wrap iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.video-locked-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: rgba(13,27,46,0.8);
+  text-align: center;
+  gap: 12px;
+}
+.lock-icon {
+  font-size: 36px;
+  opacity: 0.4;
+}
+.lock-text {
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.7;
+}
+.lock-text em { font-style: normal; color: var(--white); font-weight: 700; }
+
+/* ── VIDEO FOOTER ── */
+.video-card-footer {
+  padding: 14px 20px;
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--gray);
+  line-height: 1.7;
+}
+.video-card-footer em { font-style: normal; color: var(--red); font-weight: 700; }
+
+/* ── UNLOCK NOTICE ── */
+.unlock-notice {
+  background: rgba(6,199,85,0.07);
+  border: 1px solid rgba(6,199,85,0.3);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  display: none;
+}
+.unlock-notice.visible { display: flex; }
+.unlock-notice-icon { font-size: 20px; flex-shrink: 0; }
+.unlock-notice p { font-size: 13px; color: var(--white); line-height: 1.7; }
+.unlock-notice p em { font-style: normal; color: var(--line); font-weight: 700; }
+
+/* ── ENTRY CTA ── */
+.entry-section {
+  background: var(--red);
+  padding: 40px 28px;
+  text-align: center;
+  margin-top: 40px;
+  position: relative;
+  overflow: hidden;
+  display: none;
+}
+.entry-section.visible { display: block; }
+.entry-section::before {
+  content: 'ENTRY';
+  position: absolute;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 120px;
+  color: rgba(255,255,255,0.06);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.entry-section h2 {
+  font-size: clamp(18px,3vw,26px);
+  font-weight: 900;
+  margin-bottom: 10px;
+  position: relative;
+}
+.entry-section p {
+  font-size: 13px;
+  opacity: .9;
+  margin-bottom: 24px;
+  line-height: 1.8;
+  position: relative;
+}
+.btn-entry {
+  display: inline-block;
+  background: #fff;
+  color: var(--red);
+  padding: 16px 48px;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-decoration: none;
+  clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+  transition: opacity .2s;
+  position: relative;
+}
+.btn-entry:hover { opacity: .9; }
+
+/* ── LOCKED MESSAGE（初期） ── */
+.locked-entry {
+  border: 1px solid var(--border);
+  padding: 28px;
+  text-align: center;
+  margin-top: 40px;
+}
+.locked-entry h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.locked-entry p { font-size: 13px; color: var(--gray); line-height: 1.75; }
+
+/* ── PROGRESS ── */
+.progress-bar-wrap {
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  margin-bottom: 32px;
+  position: relative;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--red);
+  transition: width 0.5s ease;
+  width: 0%;
+}
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  gap: 8px;
+}
+.progress-step {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  color: var(--gray);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.progress-step-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--gray);
+  background: transparent;
+  transition: all .3s;
+}
+.progress-step.done .progress-step-dot {
+  border-color: var(--line);
+  background: var(--line);
+}
+.progress-step.active .progress-step-dot {
+  border-color: var(--red);
+  background: var(--red);
+}
+
+/* ── NOTE ── */
+.note {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.25);
+  margin-top: 24px;
+  line-height: 1.8;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo">U<em>B</em>ASE</div>
+  <div class="header-badge">
+    <div class="header-badge-dot"></div>
+    <span>48時間限定公開</span>
+  </div>
+</header>
+
+<!-- COUNTDOWN -->
+<div class="countdown-bar">
+  <span class="countdown-label">残り時間</span>
+  <div class="countdown-timer">
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-h">48</span>
+      <span class="countdown-unit-label">時間</span>
+    </div>
+    <span class="countdown-sep">:</span>
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-m">00</span>
+      <span class="countdown-unit-label">分</span>
+    </div>
+    <span class="countdown-sep">:</span>
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-s">00</span>
+      <span class="countdown-unit-label">秒</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- INTRO -->
+  <div class="intro">
+    <div class="intro-eyebrow">PRIVATE CONTENT ／ 登録者限定</div>
+    <h1>UBASEを知るための<br><em>3本の動画</em>を用意しました。</h1>
+    <p>順番に視聴してください。動画1を見ると次の動画が解放されます。<br>このページは登録から<strong>48時間のみ</strong>アクセスできます。</p>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-steps">
+    <div class="progress-step active" id="step1">
+      <div class="progress-step-dot"></div>
+      動画1
+    </div>
+    <div class="progress-step" id="step2">
+      <div class="progress-step-dot"></div>
+      動画2
+    </div>
+    <div class="progress-step" id="step3">
+      <div class="progress-step-dot"></div>
+      動画3
+    </div>
+    <div class="progress-step" id="step4">
+      <div class="progress-step-dot"></div>
+      エントリー
+    </div>
+  </div>
+
+  <!-- UNLOCK NOTICE -->
+  <div class="unlock-notice" id="unlock2-notice">
+    <div class="unlock-notice-icon">🔓</div>
+    <p>動画1の視聴が完了しました。<em>動画2が解放されました。</em><br>エントリーフォームも利用可能になっています。</p>
+  </div>
+  <div class="unlock-notice" id="unlock3-notice">
+    <div class="unlock-notice-icon">🔓</div>
+    <p>動画2の視聴が完了しました。<em>動画3が解放されました。</em></p>
+  </div>
+
+  <!-- VIDEO 1 -->
+  <div class="video-card active" id="card1">
+    <div class="video-card-header">
+      <div class="video-num">01</div>
+      <div class="video-info">
+        <div class="video-chapter">VIDEO 01</div>
+        <div class="video-title">¥0の理由と、UBASEが存在する理由。</div>
+      </div>
+      <span class="video-status status-watching">視聴中</span>
+    </div>
+    <div class="video-embed-wrap">
+      <iframe
+        src="https://player.vimeo.com/video/1191024711?badge=0&autopause=0&player_id=0&app_id=58479"
+        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+        title="UBASE 動画1">
+      </iframe>
+    </div>
+    <div class="video-card-footer">
+      <em>この動画を最後まで見ると、動画2とエントリーフォームが解放されます。</em><br>
+      UBASEとは何か・¥0の理由・他との違いをお伝えします。
+    </div>
+  </div>
+
+  <!-- VIDEO 2 -->
+  <div class="video-card locked" id="card2">
+    <div class="video-card-header">
+      <div class="video-num">02</div>
+      <div class="video-info">
+        <div class="video-chapter">VIDEO 02</div>
+        <div class="video-title">あなたの不安に、正直に答えます。</div>
+      </div>
+      <span class="video-status status-locked" id="status2">🔒 未解放</span>
+    </div>
+    <div id="embed2-area">
+      <div class="video-locked-overlay">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-text"><em>動画1を視聴すると解放されます</em><br>怪しくないのか・本当に変われるのか・参画後に何をするのか・キャッシュは大丈夫かの4つに正直に答えます。</div>
+      </div>
+    </div>
+    <div class="video-card-footer">
+      動画2を見ると動画3が解放されます。
+    </div>
+  </div>
+
+  <!-- VIDEO 3 -->
+  <div class="video-card locked" id="card3">
+    <div class="video-card-header">
+      <div class="video-num">03</div>
+      <div class="video-info">
+        <div class="video-chapter">VIDEO 03</div>
+        <div class="video-title">あとは、覚悟だけです。</div>
+      </div>
+      <span class="video-status status-locked" id="status3">🔒 未解放</span>
+    </div>
+    <div id="embed3-area">
+      <div class="video-locked-overlay">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-text"><em>動画2を視聴すると解放されます</em><br>最初の3ヶ月の現実・冨永の本音・一度諦めた人への語りかけ。</div>
+      </div>
+    </div>
+    <div class="video-card-footer">
+      動画3まで見た方はエントリーフォームから面接にお進みください。
+    </div>
+  </div>
+
+  <!-- ENTRY（初期ロック） -->
+  <div class="locked-entry" id="locked-entry">
+    <h3>🔒 エントリーフォーム</h3>
+    <p>動画1を視聴すると、エントリーフォームが解放されます。<br>まずは動画1をご覧ください。</p>
+  </div>
+
+  <!-- ENTRY CTA（解放後） -->
+  <div class="entry-section" id="entry-section">
+    <h2>覚悟が決まった方へ</h2>
+    <p>エントリーフォームに進んでください。<br>面接の日程を調整させていただきます。</p>
+    <a href="#" class="btn-entry">エントリーフォームへ進む</a>
+  </div>
+
+  <div class="note">
+    このページは登録から48時間のみアクセスできます。<br>
+    ご不明な点はLINE公式アカウントよりご連絡ください。
+  </div>
+
+</div>
+
+<script>
+// ── COUNTDOWN ────────────────────────────────────────
+(function() {
+  const KEY = 'ubase_48h_start';
+  let start = localStorage.getItem(KEY);
+  if (!start) {
+    start = Date.now().toString();
+    localStorage.setItem(KEY, start);
+  }
+  const endTime = parseInt(start) + 48 * 60 * 60 * 1000;
+
+  function update() {
+    const remaining = endTime - Date.now();
+    if (remaining <= 0) {
+      document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0D1B2E;color:#9AA3B0;font-family:Noto Sans JP,sans-serif;text-align:center;padding:40px;"><div><p style="font-size:14px;line-height:2;">このページの公開期間が終了しました。<br>ご不明な点はLINE公式アカウントよりご連絡ください。</p></div></div>';
+      return;
+    }
+    const h = Math.floor(remaining / 3600000);
+    const m = Math.floor((remaining % 3600000) / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+    document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+    document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+  }
+  update();
+  setInterval(update, 1000);
+})();
+
+// ── VIDEO UNLOCK ──────────────────────────────────────
+const VIMEO_EMBED = `<iframe
+  src="https://player.vimeo.com/video/1191024711?badge=0&autopause=0&player_id=0&app_id=58479"
+  allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+  style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;"
+  title="UBASE 動画">
+</iframe>`;
+
+const VIMEO_WRAP_OPEN = '<div style="position:relative;padding-bottom:56.25%;height:0;background:#000;">';
+const VIMEO_WRAP_CLOSE = '</div>';
+
+let v1done = false;
+let v2done = false;
+
+// Vimeo Player API
+const script = document.createElement('script');
+script.src = 'https://player.vimeo.com/api/player.js';
+document.head.appendChild(script);
+
+script.onload = function() {
+  // Player 1
+  const iframe1 = document.querySelector('#card1 iframe');
+  if (iframe1) {
+    const player1 = new Vimeo.Player(iframe1);
+    player1.on('ended', function() {
+      if (!v1done) {
+        v1done = true;
+        unlockVideo2();
+        unlockEntry();
+      }
+    });
+  }
+};
+
+function unlockVideo2() {
+  // カード2解放
+  const card2 = document.getElementById('card2');
+  card2.classList.remove('locked');
+  card2.classList.add('active');
+  document.getElementById('status2').className = 'video-status status-watching';
+  document.getElementById('status2').textContent = '解放済み';
+
+  // 動画埋め込み
+  const area2 = document.getElementById('embed2-area');
+  area2.innerHTML = VIMEO_WRAP_OPEN + VIMEO_EMBED + VIMEO_WRAP_CLOSE;
+
+  // Vimeo player2のイベント登録
+  setTimeout(function() {
+    const iframe2 = area2.querySelector('iframe');
+    if (iframe2 && typeof Vimeo !== 'undefined') {
+      const player2 = new Vimeo.Player(iframe2);
+      player2.on('ended', function() {
+        if (!v2done) {
+          v2done = true;
+          unlockVideo3();
+        }
+      });
+    }
+  }, 500);
+
+  // ステップ更新
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step1').classList.add('done');
+  document.getElementById('step2').classList.add('active');
+
+  // お知らせ表示
+  document.getElementById('unlock2-notice').classList.add('visible');
+  document.getElementById('unlock2-notice').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function unlockVideo3() {
+  const card3 = document.getElementById('card3');
+  card3.classList.remove('locked');
+  card3.classList.add('active');
+  document.getElementById('status3').className = 'video-status status-watching';
+  document.getElementById('status3').textContent = '解放済み';
+
+  const area3 = document.getElementById('embed3-area');
+  area3.innerHTML = VIMEO_WRAP_OPEN + VIMEO_EMBED + VIMEO_WRAP_CLOSE;
+
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step2').classList.add('done');
+  document.getElementById('step3').classList.add('active');
+
+  document.getElementById('unlock3-notice').classList.add('visible');
+  document.getElementById('unlock3-notice').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function unlockEntry() {
+  document.getElementById('locked-entry').style.display = 'none';
+  document.getElementById('entry-section').classList.add('visible');
+  document.getElementById('step4').classList.add('active');
+}
+</script>
+
+</body>
+</html>
