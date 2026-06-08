@@ -257,8 +257,17 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 // 設定方法はubase-gas-guide.txtを参照
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy/exec';
 
-// ユーザーID（LINE個人識別なし・アクセス数の計測のみ）
-const USER_ID = '訪問者';
+// セッションID（同一ブラウザ・端末であれば同一人物と判定）
+function genSessionId() {
+  return 'sess_' + Math.random().toString(36).slice(2,10)
+       + '_' + Date.now().toString(36);
+}
+const SESSION_KEY = 'ubase_session_id';
+let USER_ID = localStorage.getItem(SESSION_KEY);
+if (!USER_ID) {
+  USER_ID = genSessionId();
+  localStorage.setItem(SESSION_KEY, USER_ID);
+}
 
 function sendEvent(event, data) {
   if (!GAS_URL.includes('https://script.google.com/macros/s/AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy/exec')) {
@@ -352,6 +361,7 @@ function setupPlayer(n,afterLoad){
       if(dur>0){
         const pct=Math.min(watched.size/dur*100,100);
         setProgress(n,pct);
+        updateActiveVideo(n, Math.floor(pct));
         // 25/50/75%の節目でトラッキング
         const milestones=[25,50,75];
         milestones.forEach(function(m){
