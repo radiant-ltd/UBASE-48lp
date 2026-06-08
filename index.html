@@ -3,673 +3,403 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UBASE ― 48時間限定 詳細動画</title>
+<title>UBASE ― 48時間限定</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --navy: #0D1B2E; --navy2: #162340;
-  --red: #D9323B; --white: #F5F5F0;
-  --gray: #9AA3B0; --border: rgba(255,255,255,0.08);
-  --line: #06C755;
-}
-html { scroll-behavior: smooth; }
-body {
-  font-family: 'Noto Sans JP', sans-serif;
-  background: var(--navy);
-  color: var(--white);
-  -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-}
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--navy:#0D1B2E;--navy2:#162340;--red:#D9323B;--white:#F5F5F0;--gray:#9AA3B0;--border:rgba(255,255,255,0.08);--line:#06C755;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--white);-webkit-font-smoothing:antialiased;min-height:100vh;}
 
-/* ── HEADER ── */
-.header {
-  background: rgba(13,27,46,0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.header-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 22px;
-  letter-spacing: 4px;
-  color: var(--white);
-}
-.header-logo em { font-style: normal; color: var(--red); }
-.header-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(217,50,59,0.1);
-  border: 1px solid rgba(217,50,59,0.35);
-  padding: 6px 14px;
-  font-size: 12px;
-  color: var(--red);
-  font-weight: 700;
-}
-.header-badge-dot {
-  width: 7px; height: 7px;
-  background: var(--red);
-  border-radius: 50%;
-  animation: blink 1.5s ease-in-out infinite;
-  flex-shrink: 0;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+/* UNLOCK ANIMATION */
+.uf{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;}
+.uf.active{animation:ufa 2.5s ease forwards;}
+@keyframes ufa{0%{opacity:0;background:rgba(6,199,85,0);}20%{opacity:1;background:rgba(6,199,85,0.2);}40%{background:rgba(6,199,85,0.1);}100%{opacity:0;background:rgba(6,199,85,0);}}
+.uf-inner{text-align:center;transform:scale(0.4);opacity:0;}
+.uf.active .uf-inner{animation:ufi 2.5s ease forwards;}
+@keyframes ufi{0%{transform:scale(0.4);opacity:0;}25%{transform:scale(1.1);opacity:1;}40%{transform:scale(1);opacity:1;}85%{transform:scale(1);opacity:1;}100%{transform:scale(1.05);opacity:0;}}
+.uf-icon{font-size:72px;display:block;margin-bottom:12px;}
+.uf-text{font-family:'Bebas Neue',sans-serif;font-size:clamp(24px,5vw,46px);letter-spacing:4px;color:#fff;text-shadow:0 0 40px rgba(6,199,85,0.9);display:block;margin-bottom:6px;}
+.uf-sub{font-size:14px;font-weight:700;color:rgba(255,255,255,0.8);}
 
-/* ── COUNTDOWN ── */
-.countdown-bar {
-  background: var(--navy2);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.countdown-label {
-  font-size: 11px;
-  color: var(--gray);
-  letter-spacing: 1px;
-}
-.countdown-timer {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.countdown-unit {
-  text-align: center;
-}
-.countdown-num {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px;
-  color: var(--red);
-  line-height: 1;
-  display: block;
-  min-width: 40px;
-}
-.countdown-unit-label {
-  font-size: 9px;
-  color: var(--gray);
-  letter-spacing: 1px;
-  display: block;
-}
-.countdown-sep {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 24px;
-  color: rgba(217,50,59,0.4);
-  padding-bottom: 10px;
-}
+/* HEADER */
+.hdr{background:rgba(13,27,46,0.97);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.hdr-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;color:var(--white);}
+.hdr-logo em{font-style:normal;color:var(--red);}
+.hdr-badge{display:flex;align-items:center;gap:8px;background:rgba(217,50,59,0.1);border:1px solid rgba(217,50,59,0.35);padding:6px 14px;font-size:12px;color:var(--red);font-weight:700;}
+.hb-dot{width:7px;height:7px;background:var(--red);border-radius:50%;animation:blink 1.5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
-/* ── MAIN ── */
-.main {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 40px 24px 80px;
-}
+/* COUNTDOWN */
+.cdb{background:var(--navy2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
+.cdl{font-size:11px;color:var(--gray);letter-spacing:1px;}
+.cdt{display:flex;align-items:center;gap:4px;}
+.cdu{text-align:center;}
+.cdn{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--red);line-height:1;display:block;min-width:48px;}
+.cdms{font-size:22px;min-width:40px;}
+.cdul{font-size:9px;color:var(--gray);letter-spacing:1px;display:block;}
+.cdsp{font-family:'Bebas Neue',sans-serif;font-size:28px;color:rgba(217,50,59,0.4);padding-bottom:12px;}
 
-/* ── INTRO ── */
-.intro {
-  text-align: center;
-  margin-bottom: 40px;
-}
-.intro-eyebrow {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 10px;
-  letter-spacing: 4px;
-  color: var(--red);
-  margin-bottom: 12px;
-}
-.intro h1 {
-  font-size: clamp(20px, 4vw, 30px);
-  font-weight: 900;
-  line-height: 1.3;
-  margin-bottom: 12px;
-}
-.intro h1 em { font-style: normal; color: var(--red); }
-.intro p {
-  font-size: 13px;
-  color: var(--gray);
-  line-height: 1.85;
-}
+/* MAIN */
+.main{max-width:800px;margin:0 auto;padding:40px 24px 80px;}
 
-/* ── VIDEO CARDS ── */
-.video-card {
-  margin-bottom: 24px;
-  border: 1px solid var(--border);
-  overflow: hidden;
-  transition: border-color 0.3s;
-}
-.video-card.active { border-color: rgba(217,50,59,0.5); }
-.video-card.locked { opacity: 0.5; }
+/* INTRO */
+.intro{text-align:center;margin-bottom:36px;}
+.iey{font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:4px;color:var(--red);margin-bottom:12px;}
+.intro h1{font-size:clamp(20px,4vw,30px);font-weight:900;line-height:1.3;margin-bottom:12px;}
+.intro h1 em{font-style:normal;color:var(--red);}
+.intro p{font-size:13px;color:var(--gray);line-height:1.85;}
 
-.video-card-header {
-  background: var(--navy2);
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border-bottom: 1px solid var(--border);
-}
-.video-card.active .video-card-header {
-  border-bottom-color: rgba(217,50,59,0.3);
-}
+/* PROGRESS */
+.psteps{display:flex;justify-content:space-between;gap:8px;margin-bottom:32px;}
+.ps{flex:1;text-align:center;font-size:11px;color:var(--gray);display:flex;flex-direction:column;align-items:center;gap:5px;transition:color 0.5s;}
+.psd{width:12px;height:12px;border-radius:50%;border:2px solid var(--gray);background:transparent;transition:all 0.5s ease;}
+.ps.active{color:var(--red);}
+.ps.active .psd{border-color:var(--red);background:var(--red);box-shadow:0 0 10px rgba(217,50,59,0.6);}
+.ps.done{color:var(--line);}
+.ps.done .psd{border-color:var(--line);background:var(--line);box-shadow:0 0 10px rgba(6,199,85,0.6);}
 
-.video-num {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 36px;
-  color: rgba(217,50,59,0.25);
-  line-height: 1;
-  flex-shrink: 0;
-}
-.video-card.active .video-num { color: var(--red); }
+/* NOTICE */
+.notice{border:1px solid rgba(6,199,85,0.4);background:rgba(6,199,85,0.07);padding:16px 20px;margin-bottom:20px;display:none;align-items:center;gap:12px;animation:sli 0.5s ease;}
+.notice.vis{display:flex;}
+@keyframes sli{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+.notice p{font-size:13px;color:var(--white);line-height:1.7;}
+.notice em{font-style:normal;color:var(--line);font-weight:700;}
 
-.video-info { flex: 1; }
-.video-chapter {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  color: var(--gray);
-  margin-bottom: 3px;
-}
-.video-card.active .video-chapter { color: rgba(217,50,59,0.8); }
-.video-title {
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.4;
-}
-.video-duration {
-  font-size: 11px;
-  color: var(--gray);
-  flex-shrink: 0;
-}
+/* VIDEO CARD */
+.vc{margin-bottom:20px;border:1px solid var(--border);overflow:hidden;transition:border-color 0.5s,box-shadow 0.5s;}
+.vc.active{border-color:rgba(217,50,59,0.5);box-shadow:0 0 20px rgba(217,50,59,0.08);}
+.vc.done{border-color:rgba(6,199,85,0.5);box-shadow:0 0 20px rgba(6,199,85,0.08);}
+.vc.locked{opacity:0.45;filter:grayscale(30%);}
 
-.video-status {
-  padding: 4px 12px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  flex-shrink: 0;
-}
-.status-watching {
-  background: rgba(217,50,59,0.15);
-  border: 1px solid rgba(217,50,59,0.4);
-  color: var(--red);
-}
-.status-locked {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border);
-  color: var(--gray);
-}
-.status-done {
-  background: rgba(6,199,85,0.12);
-  border: 1px solid rgba(6,199,85,0.35);
-  color: var(--line);
-}
+.vch{background:var(--navy2);padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);transition:background 0.5s;}
+.vc.done .vch{background:rgba(6,199,85,0.08);}
+.vcn{font-family:'Bebas Neue',sans-serif;font-size:38px;color:rgba(217,50,59,0.2);line-height:1;flex-shrink:0;transition:color 0.5s;}
+.vc.active .vcn{color:var(--red);}
+.vc.done .vcn{color:var(--line);}
+.vci{flex:1;}
+.vcc{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--gray);margin-bottom:3px;transition:color 0.5s;}
+.vc.active .vcc{color:rgba(217,50,59,0.8);}
+.vc.done .vcc{color:rgba(6,199,85,0.8);}
+.vct{font-size:15px;font-weight:700;line-height:1.4;}
+.vcs{padding:4px 12px;font-size:10px;font-weight:700;letter-spacing:1px;flex-shrink:0;transition:all 0.5s;}
+.sw{background:rgba(217,50,59,0.15);border:1px solid rgba(217,50,59,0.4);color:var(--red);}
+.sl{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--gray);}
+.sd{background:rgba(6,199,85,0.15);border:1px solid rgba(6,199,85,0.5);color:var(--line);}
 
-/* ── VIDEO EMBED ── */
-.video-embed-wrap {
-  position: relative;
-  padding-bottom: 56.25%;
-  height: 0;
-  background: #000;
-}
-.video-embed-wrap iframe {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-.video-locked-overlay {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 24px;
-  background: rgba(13,27,46,0.8);
-  text-align: center;
-  gap: 12px;
-}
-.lock-icon {
-  font-size: 36px;
-  opacity: 0.4;
-}
-.lock-text {
-  font-size: 14px;
-  color: var(--gray);
-  line-height: 1.7;
-}
-.lock-text em { font-style: normal; color: var(--white); font-weight: 700; }
+/* WATCH PROGRESS */
+.wpw{padding:8px 20px;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border);display:none;}
+.wpw.vis{display:block;}
+.wpl{font-size:10px;color:var(--gray);margin-bottom:4px;display:flex;justify-content:space-between;}
+.wpbg{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;}
+.wpb{height:100%;background:var(--red);border-radius:2px;transition:width 0.5s ease;}
+.vc.done .wpb{background:var(--line);}
 
-/* ── VIDEO FOOTER ── */
-.video-card-footer {
-  padding: 14px 20px;
-  background: rgba(255,255,255,0.02);
-  border-top: 1px solid var(--border);
-  font-size: 12px;
-  color: var(--gray);
-  line-height: 1.7;
-}
-.video-card-footer em { font-style: normal; color: var(--red); font-weight: 700; }
+/* EMBED */
+.ew{position:relative;padding-bottom:56.25%;height:0;background:#000;}
+.ew iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}
 
-/* ── UNLOCK NOTICE ── */
-.unlock-notice {
-  background: rgba(6,199,85,0.07);
-  border: 1px solid rgba(6,199,85,0.3);
-  padding: 16px 20px;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  display: none;
-}
-.unlock-notice.visible { display: flex; }
-.unlock-notice-icon { font-size: 20px; flex-shrink: 0; }
-.unlock-notice p { font-size: 13px; color: var(--white); line-height: 1.7; }
-.unlock-notice p em { font-style: normal; color: var(--line); font-weight: 700; }
+/* LOCK OVERLAY */
+.lo{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;background:rgba(13,27,46,0.8);text-align:center;gap:12px;}
+.li{font-size:40px;opacity:0.35;}
+.lt{font-size:13px;color:var(--gray);line-height:1.75;}
+.lt em{font-style:normal;color:var(--white);font-weight:700;}
 
-/* ── ENTRY CTA ── */
-.entry-section {
-  background: var(--red);
-  padding: 40px 28px;
-  text-align: center;
-  margin-top: 40px;
-  position: relative;
-  overflow: hidden;
-  display: none;
-}
-.entry-section.visible { display: block; }
-.entry-section::before {
-  content: 'ENTRY';
-  position: absolute;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 120px;
-  color: rgba(255,255,255,0.06);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%,-50%);
-  white-space: nowrap;
-  pointer-events: none;
-}
-.entry-section h2 {
-  font-size: clamp(18px,3vw,26px);
-  font-weight: 900;
-  margin-bottom: 10px;
-  position: relative;
-}
-.entry-section p {
-  font-size: 13px;
-  opacity: .9;
-  margin-bottom: 24px;
-  line-height: 1.8;
-  position: relative;
-}
-.btn-entry {
-  display: inline-block;
-  background: #fff;
-  color: var(--red);
-  padding: 16px 48px;
-  font-size: 15px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  text-decoration: none;
-  clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
-  transition: opacity .2s;
-  position: relative;
-}
-.btn-entry:hover { opacity: .9; }
+.vcf{padding:12px 20px;background:rgba(255,255,255,0.02);border-top:1px solid var(--border);font-size:12px;color:var(--gray);line-height:1.7;}
+.vcf em{font-style:normal;color:var(--red);font-weight:700;}
 
-/* ── LOCKED MESSAGE（初期） ── */
-.locked-entry {
-  border: 1px solid var(--border);
-  padding: 28px;
-  text-align: center;
-  margin-top: 40px;
-}
-.locked-entry h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-.locked-entry p { font-size: 13px; color: var(--gray); line-height: 1.75; }
+/* RESUME */
+.rb{background:rgba(217,50,59,0.08);border:1px solid rgba(217,50,59,0.3);padding:10px 16px;margin-bottom:0;font-size:12px;color:var(--gray);display:none;align-items:center;gap:10px;}
+.rb.vis{display:flex;}
+.rbb{margin-left:auto;font-size:11px;font-weight:700;background:var(--red);color:#fff;padding:5px 14px;border:none;cursor:pointer;flex-shrink:0;}
 
-/* ── PROGRESS ── */
-.progress-bar-wrap {
-  height: 3px;
-  background: rgba(255,255,255,0.06);
-  margin-bottom: 32px;
-  position: relative;
-}
-.progress-bar {
-  height: 100%;
-  background: var(--red);
-  transition: width 0.5s ease;
-  width: 0%;
-}
-.progress-steps {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 32px;
-  gap: 8px;
-}
-.progress-step {
-  flex: 1;
-  text-align: center;
-  font-size: 11px;
-  color: var(--gray);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.progress-step-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  border: 2px solid var(--gray);
-  background: transparent;
-  transition: all .3s;
-}
-.progress-step.done .progress-step-dot {
-  border-color: var(--line);
-  background: var(--line);
-}
-.progress-step.active .progress-step-dot {
-  border-color: var(--red);
-  background: var(--red);
-}
+/* ENTRY */
+.le{border:1px solid var(--border);padding:28px;text-align:center;margin-top:32px;}
+.le h3{font-size:16px;font-weight:700;margin-bottom:8px;}
+.le p{font-size:13px;color:var(--gray);line-height:1.75;}
+.es{background:var(--red);padding:40px 28px;text-align:center;margin-top:32px;position:relative;overflow:hidden;display:none;animation:sli 0.6s ease;}
+.es.vis{display:block;}
+.es::before{content:'ENTRY';position:absolute;font-family:'Bebas Neue',sans-serif;font-size:120px;color:rgba(255,255,255,0.06);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+.es h2{font-size:clamp(18px,3vw,26px);font-weight:900;margin-bottom:10px;position:relative;}
+.es p{font-size:13px;opacity:.9;margin-bottom:24px;line-height:1.8;position:relative;}
+.be{display:inline-block;background:#fff;color:var(--red);padding:16px 48px;font-size:15px;font-weight:900;letter-spacing:1px;text-decoration:none;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:opacity .2s;position:relative;}
+.be:hover{opacity:.9;}
 
-/* ── NOTE ── */
-.note {
-  text-align: center;
-  font-size: 12px;
-  color: rgba(255,255,255,0.25);
-  margin-top: 24px;
-  line-height: 1.8;
-}
+.note{text-align:center;font-size:12px;color:rgba(255,255,255,0.2);margin-top:24px;line-height:1.8;}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="header">
-  <div class="header-logo">U<em>B</em>ASE</div>
-  <div class="header-badge">
-    <div class="header-badge-dot"></div>
-    <span>48時間限定公開</span>
+<!-- UNLOCK ANIMATION -->
+<div class="uf" id="uf">
+  <div class="uf-inner">
+    <span class="uf-icon">🔓</span>
+    <span class="uf-text" id="uf-text">UNLOCKED</span>
+    <span class="uf-sub" id="uf-sub">次の動画が解放されました</span>
   </div>
+</div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo">U<em>B</em>ASE</div>
+  <div class="hdr-badge"><div class="hb-dot"></div><span>48時間限定公開</span></div>
 </header>
 
 <!-- COUNTDOWN -->
-<div class="countdown-bar">
-  <span class="countdown-label">残り時間</span>
-  <div class="countdown-timer">
-    <div class="countdown-unit">
-      <span class="countdown-num" id="cd-h">48</span>
-      <span class="countdown-unit-label">時間</span>
-    </div>
-    <span class="countdown-sep">:</span>
-    <div class="countdown-unit">
-      <span class="countdown-num" id="cd-m">00</span>
-      <span class="countdown-unit-label">分</span>
-    </div>
-    <span class="countdown-sep">:</span>
-    <div class="countdown-unit">
-      <span class="countdown-num" id="cd-s">00</span>
-      <span class="countdown-unit-label">秒</span>
-    </div>
+<div class="cdb">
+  <span class="cdl">残り時間</span>
+  <div class="cdt">
+    <div class="cdu"><span class="cdn" id="cdh">48</span><span class="cdul">時間</span></div>
+    <span class="cdsp">:</span>
+    <div class="cdu"><span class="cdn" id="cdm">00</span><span class="cdul">分</span></div>
+    <span class="cdsp">:</span>
+    <div class="cdu"><span class="cdn" id="cds">00</span><span class="cdul">秒</span></div>
+    <span class="cdsp">.</span>
+    <div class="cdu"><span class="cdn cdms" id="cdms">00</span><span class="cdul">&nbsp;</span></div>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="main">
-
-  <!-- INTRO -->
   <div class="intro">
-    <div class="intro-eyebrow">PRIVATE CONTENT ／ 登録者限定</div>
+    <div class="iey">PRIVATE CONTENT ／ 登録者限定</div>
     <h1>UBASEを知るための<br><em>3本の動画</em>を用意しました。</h1>
-    <p>順番に視聴してください。動画1を見ると次の動画が解放されます。<br>このページは登録から<strong>48時間のみ</strong>アクセスできます。</p>
+    <p>順番に視聴してください。動画を最後まで見ると次が解放されます。<br>このページは<strong>48時間のみ</strong>アクセスできます。</p>
   </div>
 
-  <!-- PROGRESS -->
-  <div class="progress-steps">
-    <div class="progress-step active" id="step1">
-      <div class="progress-step-dot"></div>
-      動画1
-    </div>
-    <div class="progress-step" id="step2">
-      <div class="progress-step-dot"></div>
-      動画2
-    </div>
-    <div class="progress-step" id="step3">
-      <div class="progress-step-dot"></div>
-      動画3
-    </div>
-    <div class="progress-step" id="step4">
-      <div class="progress-step-dot"></div>
-      エントリー
-    </div>
+  <div class="psteps">
+    <div class="ps active" id="ps1"><div class="psd"></div>動画1</div>
+    <div class="ps" id="ps2"><div class="psd"></div>動画2</div>
+    <div class="ps" id="ps3"><div class="psd"></div>動画3</div>
+    <div class="ps" id="ps4"><div class="psd"></div>エントリー</div>
   </div>
 
-  <!-- UNLOCK NOTICE -->
-  <div class="unlock-notice" id="unlock2-notice">
-    <div class="unlock-notice-icon">🔓</div>
-    <p>動画1の視聴が完了しました。<em>動画2が解放されました。</em><br>エントリーフォームも利用可能になっています。</p>
-  </div>
-  <div class="unlock-notice" id="unlock3-notice">
-    <div class="unlock-notice-icon">🔓</div>
-    <p>動画2の視聴が完了しました。<em>動画3が解放されました。</em></p>
-  </div>
+  <div class="notice" id="n2"><span style="font-size:22px;flex-shrink:0;">🔓</span><p>動画1を視聴完了しました。<em>動画2が解放されました。</em><br>エントリーフォームも利用可能になっています。</p></div>
+  <div class="notice" id="n3"><span style="font-size:22px;flex-shrink:0;">🔓</span><p>動画2を視聴完了しました。<em>動画3が解放されました。</em></p></div>
 
   <!-- VIDEO 1 -->
-  <div class="video-card active" id="card1">
-    <div class="video-card-header">
-      <div class="video-num">01</div>
-      <div class="video-info">
-        <div class="video-chapter">VIDEO 01</div>
-        <div class="video-title">¥0の理由と、UBASEが存在する理由。</div>
-      </div>
-      <span class="video-status status-watching">視聴中</span>
+  <div class="vc active" id="c1">
+    <div class="vch">
+      <div class="vcn">01</div>
+      <div class="vci"><div class="vcc">VIDEO 01</div><div class="vct">¥0の理由と、UBASEが存在する理由。</div></div>
+      <span class="vcs sw" id="s1">視聴中</span>
     </div>
-    <div class="video-embed-wrap">
-      <iframe
-        src="https://player.vimeo.com/video/1191024711?badge=0&autopause=0&player_id=0&app_id=58479"
+    <div class="wpw vis" id="wp1w">
+      <div class="wpl"><span>視聴の進捗（実際に見た時間）</span><span id="wp1p">0%</span></div>
+      <div class="wpbg"><div class="wpb" id="wp1b"></div></div>
+    </div>
+    <div class="rb" id="rb1">
+      <span>前回の続きから再生できます（<span id="rb1t"></span>）</span>
+      <button class="rbb" onclick="doResume(1)">続きから再生</button>
+    </div>
+    <div class="ew">
+      <iframe id="if1"
+        src="https://player.vimeo.com/video/1191024711?badge=0&autopause=0&player_id=v1&app_id=58479"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
-        title="UBASE 動画1">
-      </iframe>
+        title="UBASE 動画1"></iframe>
     </div>
-    <div class="video-card-footer">
-      <em>この動画を最後まで見ると、動画2とエントリーフォームが解放されます。</em><br>
-      UBASEとは何か・¥0の理由・他との違いをお伝えします。
-    </div>
+    <div class="vcf"><em>この動画を最後まで視聴すると、動画2とエントリーフォームが解放されます。</em></div>
   </div>
 
   <!-- VIDEO 2 -->
-  <div class="video-card locked" id="card2">
-    <div class="video-card-header">
-      <div class="video-num">02</div>
-      <div class="video-info">
-        <div class="video-chapter">VIDEO 02</div>
-        <div class="video-title">あなたの不安に、正直に答えます。</div>
-      </div>
-      <span class="video-status status-locked" id="status2">🔒 未解放</span>
+  <div class="vc locked" id="c2">
+    <div class="vch">
+      <div class="vcn">02</div>
+      <div class="vci"><div class="vcc">VIDEO 02</div><div class="vct">あなたの不安に、正直に答えます。</div></div>
+      <span class="vcs sl" id="s2">🔒 未解放</span>
     </div>
-    <div id="embed2-area">
-      <div class="video-locked-overlay">
-        <div class="lock-icon">🔒</div>
-        <div class="lock-text"><em>動画1を視聴すると解放されます</em><br>怪しくないのか・本当に変われるのか・参画後に何をするのか・キャッシュは大丈夫かの4つに正直に答えます。</div>
-      </div>
-    </div>
-    <div class="video-card-footer">
-      動画2を見ると動画3が解放されます。
-    </div>
+    <div class="wpw" id="wp2w"><div class="wpl"><span>視聴の進捗</span><span id="wp2p">0%</span></div><div class="wpbg"><div class="wpb" id="wp2b"></div></div></div>
+    <div id="e2"><div class="lo"><div class="li">🔒</div><div class="lt"><em>動画1を最後まで視聴すると解放されます</em><br>4つの不安に正直に答えます。</div></div></div>
+    <div class="vcf">動画2を見ると動画3が解放されます。</div>
   </div>
 
   <!-- VIDEO 3 -->
-  <div class="video-card locked" id="card3">
-    <div class="video-card-header">
-      <div class="video-num">03</div>
-      <div class="video-info">
-        <div class="video-chapter">VIDEO 03</div>
-        <div class="video-title">あとは、覚悟だけです。</div>
-      </div>
-      <span class="video-status status-locked" id="status3">🔒 未解放</span>
+  <div class="vc locked" id="c3">
+    <div class="vch">
+      <div class="vcn">03</div>
+      <div class="vci"><div class="vcc">VIDEO 03</div><div class="vct">あとは、覚悟だけです。</div></div>
+      <span class="vcs sl" id="s3">🔒 未解放</span>
     </div>
-    <div id="embed3-area">
-      <div class="video-locked-overlay">
-        <div class="lock-icon">🔒</div>
-        <div class="lock-text"><em>動画2を視聴すると解放されます</em><br>最初の3ヶ月の現実・冨永の本音・一度諦めた人への語りかけ。</div>
-      </div>
-    </div>
-    <div class="video-card-footer">
-      動画3まで見た方はエントリーフォームから面接にお進みください。
-    </div>
+    <div class="wpw" id="wp3w"><div class="wpl"><span>視聴の進捗</span><span id="wp3p">0%</span></div><div class="wpbg"><div class="wpb" id="wp3b"></div></div></div>
+    <div id="e3"><div class="lo"><div class="li">🔒</div><div class="lt"><em>動画2を最後まで視聴すると解放されます</em><br>最初の3ヶ月の現実・冨永の本音・一度諦めた人への語りかけ。</div></div></div>
+    <div class="vcf">動画3まで見た方はエントリーフォームへ進んでください。</div>
   </div>
 
-  <!-- ENTRY（初期ロック） -->
-  <div class="locked-entry" id="locked-entry">
-    <h3>🔒 エントリーフォーム</h3>
-    <p>動画1を視聴すると、エントリーフォームが解放されます。<br>まずは動画1をご覧ください。</p>
-  </div>
-
-  <!-- ENTRY CTA（解放後） -->
-  <div class="entry-section" id="entry-section">
-    <h2>覚悟が決まった方へ</h2>
-    <p>エントリーフォームに進んでください。<br>面接の日程を調整させていただきます。</p>
-    <a href="#" class="btn-entry">エントリーフォームへ進む</a>
-  </div>
-
-  <div class="note">
-    このページは登録から48時間のみアクセスできます。<br>
-    ご不明な点はLINE公式アカウントよりご連絡ください。
-  </div>
-
+  <div class="le" id="le"><h3>🔒 エントリーフォーム</h3><p>動画1を最後まで視聴すると、エントリーフォームが解放されます。</p></div>
+  <div class="es" id="es"><h2>覚悟が決まった方へ</h2><p>エントリーフォームに進んでください。<br>面接の日程を調整させていただきます。</p><a href="#" class="be" onclick="sendEvent('entry_click',{notify:true});ga4Event('entry_click',{});">エントリーフォームへ進む</a></div>
+  <div class="note">このページは登録から48時間のみアクセスできます。<br>ご不明な点はLINE公式アカウントよりご連絡ください。</div>
 </div>
 
 <script>
-// ── COUNTDOWN ────────────────────────────────────────
-(function() {
-  const KEY = 'ubase_48h_start';
-  let start = localStorage.getItem(KEY);
-  if (!start) {
-    start = Date.now().toString();
-    localStorage.setItem(KEY, start);
+// COUNTDOWN
+(function(){
+  const KEY='ubase_start';
+  const p=new URLSearchParams(location.search);
+  const us=p.get('start');
+  let s=us&&!isNaN(+us)?+us:+(localStorage.getItem(KEY)||0);
+  if(!s){s=Date.now();localStorage.setItem(KEY,s);}
+  const end=s+48*3600*1000;
+  function tick(){
+    const r=end-Date.now();
+    if(r<=0){document.body.innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0D1B2E;color:#9AA3B0;font-size:14px;text-align:center;padding:40px;line-height:2;"><p>このページの公開期間が終了しました。<br>ご不明な点はLINEよりご連絡ください。</p></div>';return;}
+    const h=Math.floor(r/3600000),m=Math.floor(r%3600000/60000),ss=Math.floor(r%60000/1000),ms=Math.floor(r%1000/10);
+    document.getElementById('cdh').textContent=String(h).padStart(2,'0');
+    document.getElementById('cdm').textContent=String(m).padStart(2,'0');
+    document.getElementById('cds').textContent=String(ss).padStart(2,'0');
+    document.getElementById('cdms').textContent=String(ms).padStart(2,'0');
   }
-  const endTime = parseInt(start) + 48 * 60 * 60 * 1000;
-
-  function update() {
-    const remaining = endTime - Date.now();
-    if (remaining <= 0) {
-      document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0D1B2E;color:#9AA3B0;font-family:Noto Sans JP,sans-serif;text-align:center;padding:40px;"><div><p style="font-size:14px;line-height:2;">このページの公開期間が終了しました。<br>ご不明な点はLINE公式アカウントよりご連絡ください。</p></div></div>';
-      return;
-    }
-    const h = Math.floor(remaining / 3600000);
-    const m = Math.floor((remaining % 3600000) / 60000);
-    const s = Math.floor((remaining % 60000) / 1000);
-    document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
-    document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
-    document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
-  }
-  update();
-  setInterval(update, 1000);
+  tick();setInterval(tick,50);
 })();
 
-// ── VIDEO UNLOCK ──────────────────────────────────────
-const VIMEO_EMBED = `<iframe
-  src="https://player.vimeo.com/video/1191024711?badge=0&autopause=0&player_id=0&app_id=58479"
-  allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
-  style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;"
-  title="UBASE 動画">
-</iframe>`;
 
-const VIMEO_WRAP_OPEN = '<div style="position:relative;padding-bottom:56.25%;height:0;background:#000;">';
-const VIMEO_WRAP_CLOSE = '</div>';
+// ══ TRACKING CONFIG ════════════════════════════════════════
+// Google Apps Script ウェブアプリのURLを設定してください
+// 設定方法はubase-gas-guide.txtを参照
+const GAS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
-let v1done = false;
-let v2done = false;
+// ユーザー識別子（LINEから来た場合はURLパラメータで渡す）
+const USER_ID = new URLSearchParams(location.search).get('uid') || '不明';
 
-// Vimeo Player API
-const script = document.createElement('script');
-script.src = 'https://player.vimeo.com/api/player.js';
-document.head.appendChild(script);
+function sendEvent(event, data) {
+  if (!GAS_URL.includes('YOUR_SCRIPT_ID')) {
+    const payload = { uid: USER_ID, event, ...data, ts: new Date().toISOString() };
+    fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+  }
+}
 
-script.onload = function() {
-  // Player 1
-  const iframe1 = document.querySelector('#card1 iframe');
-  if (iframe1) {
-    const player1 = new Vimeo.Player(iframe1);
-    player1.on('ended', function() {
-      if (!v1done) {
-        v1done = true;
-        unlockVideo2();
-        unlockEntry();
+// GA4トラッキング（測定IDを設定してから使用）
+function ga4Event(name, params) {
+  if (typeof gtag === 'function') {
+    gtag('event', name, params);
+  }
+}
+
+// STATE
+const VID='1191024711';
+const REQ=0.90;
+const st={
+  v1done:localStorage.getItem('ubase_v1_done')==='1',
+  v2done:localStorage.getItem('ubase_v2_done')==='1',
+  v3done:localStorage.getItem('ubase_v3_done')==='1',
+  v1pos:+localStorage.getItem('ubase_v1_pos')||0,
+};
+const players={};
+
+function fmt(s){return Math.floor(s/60)+'分'+String(Math.floor(s%60)).padStart(2,'0')+'秒';}
+function setStatus(n,cls,txt){const el=document.getElementById('s'+n);el.className='vcs '+cls;el.textContent=txt;}
+function setProgress(n,pct){
+  document.getElementById('wp'+n+'b').style.width=pct+'%';
+  document.getElementById('wp'+n+'p').textContent=Math.floor(pct)+'%';
+  document.getElementById('wp'+n+'w').classList.add('vis');
+}
+function markDone(n){
+  const c=document.getElementById('c'+n);
+  c.classList.remove('active','locked');c.classList.add('done');
+  setStatus(n,'sd','✓ 視聴完了');
+  const ps=document.getElementById('ps'+n);ps.classList.remove('active');ps.classList.add('done');
+}
+function unlockCard(n,anim){
+  const c=document.getElementById('c'+n);c.classList.remove('locked');c.classList.add('active');
+  setStatus(n,'sw','解放済み');
+  document.getElementById('ps'+n).classList.add('active');
+  document.getElementById('wp'+n+'w').classList.add('vis');
+  if(anim){const el=document.getElementById('n'+n);if(el)el.classList.add('vis');}
+}
+function unlockEntry(){
+  document.getElementById('le').style.display='none';
+  document.getElementById('es').classList.add('vis');
+  document.getElementById('ps4').classList.add('active');
+}
+function flash(text,sub){
+  document.getElementById('uf-text').textContent=text;
+  document.getElementById('uf-sub').textContent=sub;
+  const el=document.getElementById('uf');el.classList.add('active');
+  setTimeout(()=>el.classList.remove('active'),2800);
+}
+
+function doResume(n){
+  const pl=players[n];if(!pl)return;
+  const pos=+localStorage.getItem('ubase_v'+n+'_pos')||0;
+  if(pos>0)pl.setCurrentTime(pos);
+  document.getElementById('rb'+n).classList.remove('vis');
+}
+
+function setupPlayer(n,afterLoad){
+  const area=document.getElementById('e'+n);
+  if(n!==1){
+    area.innerHTML='<div class="ew"><iframe id="if'+n+'" src="https://player.vimeo.com/video/'+VID+'?badge=0&autopause=0&player_id=v'+n+'&app_id=58479" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" title="UBASE 動画'+n+'"></iframe></div>';
+  }
+  setTimeout(()=>{
+    const iframe=document.getElementById('if'+n);
+    if(!iframe||typeof Vimeo==='undefined')return;
+    const player=new Vimeo.Player(iframe);
+    players[n]=player;
+    let watched=new Set(JSON.parse(localStorage.getItem('ubase_v'+n+'_w')||'[]'));
+    let dur=0,lastT=0;
+    player.getDuration().then(d=>{dur=d;if(afterLoad)afterLoad(player,d);});
+    player.on('timeupdate',function(data){
+      const cur=data.seconds,sec=Math.floor(cur);
+      if(cur-lastT>5&&cur-lastT<dur*0.5){player.setCurrentTime(lastT+0.1);return;}
+      lastT=cur;
+      watched.add(sec);
+      localStorage.setItem('ubase_v'+n+'_w',JSON.stringify([...watched]));
+      localStorage.setItem('ubase_v'+n+'_pos',cur);
+      if(dur>0){
+        const pct=Math.min(watched.size/dur*100,100);
+        setProgress(n,pct);
+        // 25/50/75%の節目でトラッキング
+        const milestones=[25,50,75];
+        milestones.forEach(function(m){
+          const key='ubase_v'+n+'_m'+m;
+          if(pct>=m&&!localStorage.getItem(key)){
+            localStorage.setItem(key,'1');
+            sendEvent('video_milestone',{video:n,pct:m});
+            ga4Event('video_progress',{video_number:n,percent:m});
+          }
+        });
+        if(watched.size>=dur*REQ){
+          if(n===1&&!st.v1done){st.v1done=true;localStorage.setItem('ubase_v1_done','1');sendEvent('video1_complete',{video:1});ga4Event('video_complete',{video_number:1});onDone(1);}
+          if(n===2&&!st.v2done){st.v2done=true;localStorage.setItem('ubase_v2_done','1');sendEvent('video2_complete',{video:2});ga4Event('video_complete',{video_number:2});onDone(2);}
+          if(n===3&&!st.v3done){st.v3done=true;localStorage.setItem('ubase_v3_done','1');sendEvent('video3_complete',{video:3,notify:true});ga4Event('video_complete',{video_number:3});onDone(3);}
+        }
       }
     });
-  }
-};
+    player.on('playbackratechange',function(d){if(d.playbackRate!==1)player.setPlaybackRate(1);});
+  },800);
+}
 
-function unlockVideo2() {
-  // カード2解放
-  const card2 = document.getElementById('card2');
-  card2.classList.remove('locked');
-  card2.classList.add('active');
-  document.getElementById('status2').className = 'video-status status-watching';
-  document.getElementById('status2').textContent = '解放済み';
+function onDone(n){
+  flash(n===3?'視聴完了！':'動画'+(n+1)+'が解放されました',n===3?'エントリーフォームへ進んでください':'次の動画を視聴してください');
+  setTimeout(()=>{
+    markDone(n);
+    if(n===1){unlockCard(2,true);unlockEntry();document.getElementById('c2').scrollIntoView({behavior:'smooth',block:'center'});setupPlayer(2);}
+    if(n===2){unlockCard(3,true);document.getElementById('c3').scrollIntoView({behavior:'smooth',block:'center'});setupPlayer(3);}
+    if(n===3){document.getElementById('es').scrollIntoView({behavior:'smooth',block:'center'});}
+  },2500);
+}
 
-  // 動画埋め込み
-  const area2 = document.getElementById('embed2-area');
-  area2.innerHTML = VIMEO_WRAP_OPEN + VIMEO_EMBED + VIMEO_WRAP_CLOSE;
-
-  // Vimeo player2のイベント登録
-  setTimeout(function() {
-    const iframe2 = area2.querySelector('iframe');
-    if (iframe2 && typeof Vimeo !== 'undefined') {
-      const player2 = new Vimeo.Player(iframe2);
-      player2.on('ended', function() {
-        if (!v2done) {
-          v2done = true;
-          unlockVideo3();
-        }
-      });
+// INIT
+const apiS=document.createElement('script');
+apiS.src='https://player.vimeo.com/api/player.js';
+document.head.appendChild(apiS);
+apiS.onload=function(){
+  // Player1セットアップ（resume対応）
+  const pos1=+localStorage.getItem('ubase_v1_pos')||0;
+  setupPlayer(1,function(player,dur){
+    if(!st.v1done&&pos1>10){
+      document.getElementById('rb1t').textContent=fmt(pos1)+'から';
+      document.getElementById('rb1').classList.add('vis');
     }
-  }, 500);
-
-  // ステップ更新
-  document.getElementById('step1').classList.remove('active');
-  document.getElementById('step1').classList.add('done');
-  document.getElementById('step2').classList.add('active');
-
-  // お知らせ表示
-  document.getElementById('unlock2-notice').classList.add('visible');
-  document.getElementById('unlock2-notice').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-function unlockVideo3() {
-  const card3 = document.getElementById('card3');
-  card3.classList.remove('locked');
-  card3.classList.add('active');
-  document.getElementById('status3').className = 'video-status status-watching';
-  document.getElementById('status3').textContent = '解放済み';
-
-  const area3 = document.getElementById('embed3-area');
-  area3.innerHTML = VIMEO_WRAP_OPEN + VIMEO_EMBED + VIMEO_WRAP_CLOSE;
-
-  document.getElementById('step2').classList.remove('active');
-  document.getElementById('step2').classList.add('done');
-  document.getElementById('step3').classList.add('active');
-
-  document.getElementById('unlock3-notice').classList.add('visible');
-  document.getElementById('unlock3-notice').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-function unlockEntry() {
-  document.getElementById('locked-entry').style.display = 'none';
-  document.getElementById('entry-section').classList.add('visible');
-  document.getElementById('step4').classList.add('active');
-}
+  });
+  if(st.v1done){markDone(1);unlockCard(2,false);unlockEntry();setupPlayer(2);}
+  if(st.v2done){markDone(2);unlockCard(3,false);setupPlayer(3);}
+  if(st.v3done){markDone(3);}
+};
 </script>
-
 </body>
 </html>
