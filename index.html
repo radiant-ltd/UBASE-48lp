@@ -251,44 +251,49 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   tick();setInterval(tick,50);
 })();
 
-
-// ══ TRACKING CONFIG ════════════════════════════════════════
-// Google Apps Script ウェブアプリのURLを設定してください
-// 設定方法はubase-gas-guide.txtを参照
+// ── TRACKING CONFIG ──────────────────────────────────────────
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy/exec';
 
 // セッションID（同一ブラウザ・端末であれば同一人物と判定）
-function genSessionId() {
-  return 'sess_' + Math.random().toString(36).slice(2,10)
-       + '_' + Date.now().toString(36);
+function genSessionId(){
+  return 'sess_'+Math.random().toString(36).slice(2,10)+'_'+Date.now().toString(36);
 }
-const SESSION_KEY = 'ubase_session_id';
-let USER_ID = localStorage.getItem(SESSION_KEY);
-if (!USER_ID) {
-  USER_ID = genSessionId();
-  localStorage.setItem(SESSION_KEY, USER_ID);
-}
+const SESSION_KEY='ubase_session_id';
+let USER_ID=localStorage.getItem(SESSION_KEY);
+if(!USER_ID){USER_ID=genSessionId();localStorage.setItem(SESSION_KEY,USER_ID);}
 
-function sendEvent(event, data) {
-  if (!GAS_URL.includes('https://script.google.com/macros/s/AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy/exec')) {
-    const payload = { uid: USER_ID, event, ...data, ts: new Date().toISOString() };
-    fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
+// イベント送信（text/plainで送信 ※no-corsではapplication/jsonは使用不可）
+function sendEvent(event,data){
+  if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
+    const payload=JSON.stringify({uid:USER_ID,event,...data,ts:new Date().toISOString()});
+    fetch(GAS_URL,{method:'POST',mode:'no-cors',body:payload}).catch(()=>{});
   }
 }
+function ga4Event(name,params){if(typeof gtag==='function')gtag('event',name,params);}
 
-// GA4トラッキング（測定IDを設定してから使用）
-function ga4Event(name, params) {
-  if (typeof gtag === 'function') {
-    gtag('event', name, params);
+// ── 離脱トラッキング ─────────────────────────────────────────
+const activeVideo={num:0,pct:0};
+function updateActiveVideo(num,pct){activeVideo.num=num;activeVideo.pct=pct;}
+
+window.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden'&&activeVideo.num>0){
+    const key='ubase_v'+activeVideo.num+'_done';
+    if(localStorage.getItem(key)!=='1'){
+      const payload=JSON.stringify({
+        uid:USER_ID,event:'video_exit',
+        video:activeVideo.num,pct:activeVideo.pct,
+        ts:new Date().toISOString()
+      });
+      if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
+        // sendBeaconはtext/plain Blobで確実に送信
+        const blob=new Blob([payload],{type:'text/plain'});
+        navigator.sendBeacon(GAS_URL,blob);
+      }
+    }
   }
-}
+});
 
-// STATE
+// ── STATE ────────────────────────────────────────────────────
 const VID='1191024711';
 const REQ=0.90;
 const st={
@@ -331,10 +336,14 @@ function flash(text,sub){
   setTimeout(()=>el.classList.remove('active'),2800);
 }
 
+// リジューム（readyイベント後にsetCurrentTime）
 function doResume(n){
   const pl=players[n];if(!pl)return;
   const pos=+localStorage.getItem('ubase_v'+n+'_pos')||0;
-  if(pos>0)pl.setCurrentTime(pos);
+  if(pos<=0)return;
+  pl.ready().then(function(){
+    pl.setCurrentTime(pos).then(function(){pl.play();});
+  });
   document.getElementById('rb'+n).classList.remove('vis');
 }
 
@@ -353,6 +362,7 @@ function setupPlayer(n,afterLoad){
     player.getDuration().then(d=>{dur=d;if(afterLoad)afterLoad(player,d);});
     player.on('timeupdate',function(data){
       const cur=data.seconds,sec=Math.floor(cur);
+      // スキップ検知：5秒以上ジャンプで元の位置に戻す
       if(cur-lastT>5&&cur-lastT<dur*0.5){player.setCurrentTime(lastT+0.1);return;}
       lastT=cur;
       watched.add(sec);
@@ -361,10 +371,9 @@ function setupPlayer(n,afterLoad){
       if(dur>0){
         const pct=Math.min(watched.size/dur*100,100);
         setProgress(n,pct);
-        updateActiveVideo(n, Math.floor(pct));
+        updateActiveVideo(n,Math.floor(pct));
         // 25/50/75%の節目でトラッキング
-        const milestones=[25,50,75];
-        milestones.forEach(function(m){
+        [25,50,75].forEach(function(m){
           const key='ubase_v'+n+'_m'+m;
           if(pct>=m&&!localStorage.getItem(key)){
             localStorage.setItem(key,'1');
@@ -372,6 +381,7 @@ function setupPlayer(n,afterLoad){
             ga4Event('video_progress',{video_number:n,percent:m});
           }
         });
+        // 90%以上で完了
         if(watched.size>=dur*REQ){
           if(n===1&&!st.v1done){st.v1done=true;localStorage.setItem('ubase_v1_done','1');sendEvent('video1_complete',{video:1});ga4Event('video_complete',{video_number:1});onDone(1);}
           if(n===2&&!st.v2done){st.v2done=true;localStorage.setItem('ubase_v2_done','1');sendEvent('video2_complete',{video:2});ga4Event('video_complete',{video_number:2});onDone(2);}
@@ -379,6 +389,7 @@ function setupPlayer(n,afterLoad){
         }
       }
     });
+    // 倍速防止
     player.on('playbackratechange',function(d){if(d.playbackRate!==1)player.setPlaybackRate(1);});
   },800);
 }
@@ -398,12 +409,14 @@ const apiS=document.createElement('script');
 apiS.src='https://player.vimeo.com/api/player.js';
 document.head.appendChild(apiS);
 apiS.onload=function(){
-  // Player1セットアップ（resume対応）
   const pos1=+localStorage.getItem('ubase_v1_pos')||0;
   setupPlayer(1,function(player,dur){
     if(!st.v1done&&pos1>10){
-      document.getElementById('rb1t').textContent=fmt(pos1)+'から';
-      document.getElementById('rb1').classList.add('vis');
+      // readyを待ってからリジュームバナーを表示
+      player.ready().then(function(){
+        document.getElementById('rb1t').textContent=fmt(pos1)+'から';
+        document.getElementById('rb1').classList.add('vis');
+      });
     }
   });
   if(st.v1done){markDone(1);unlockCard(2,false);unlockEntry();setupPlayer(2);}
