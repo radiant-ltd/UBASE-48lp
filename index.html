@@ -226,7 +226,21 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   </div>
 
   <div class="le" id="le"><h3>🔒 エントリーフォーム</h3><p>動画1を最後まで視聴すると、エントリーフォームが解放されます。</p></div>
-  <div class="es" id="es"><h2>覚悟が決まった方へ</h2><p>エントリーフォームに進んでください。<br>面接の日程を調整させていただきます。</p><a href="#" class="be" onclick="sendEvent('entry_click',{notify:true});ga4Event('entry_click',{});">エントリーフォームへ進む</a></div>
+  <div class="es" id="es"><h2>覚悟が決まった方へ</h2><p>エントリーフォームに進んでください。<br>面接の日程を調整させていただきます。</p><a href="#" class="be"
+  onclick="sendEvent('entry_click',{notify:true});ga4Event('entry_click',{});">
+  エントリーフォームへ進む
+</a>
+<p style="margin-top:16px;font-size:13px;opacity:.85;position:relative;">
+  面接の日程はJICOOから選択してください。
+</p>
+<a href="https://jicoo.com/YOUR_JICOO_URL"
+  target="_blank"
+  rel="noopener"
+  class="be"
+  style="margin-top:12px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);"
+  onclick="sendEvent('jicoo_click',{notify:true});ga4Event('jicoo_click',{});">
+  面接日程を選ぶ（JICOO）
+</a></div>
   <div class="note">このページは登録から48時間のみアクセスできます。<br>ご不明な点はLINE公式アカウントよりご連絡ください。</div>
 </div>
 
@@ -252,9 +266,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 })();
 
 // ── TRACKING CONFIG ──────────────────────────────────────────
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy/exec';
+const GAS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
-// セッションID（同一ブラウザ・端末であれば同一人物と判定）
+// セッションID
 function genSessionId(){
   return 'sess_'+Math.random().toString(36).slice(2,10)+'_'+Date.now().toString(36);
 }
@@ -262,16 +276,17 @@ const SESSION_KEY='ubase_session_id';
 let USER_ID=localStorage.getItem(SESSION_KEY);
 if(!USER_ID){USER_ID=genSessionId();localStorage.setItem(SESSION_KEY,USER_ID);}
 
-// イベント送信（text/plainで送信 ※no-corsではapplication/jsonは使用不可）
+// イベント送信（GET方式 / CORS制限を完全回避）
 function sendEvent(event,data){
-  if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
-    const payload=JSON.stringify({uid:USER_ID,event,...data,ts:new Date().toISOString()});
-    fetch(GAS_URL,{method:'POST',mode:'no-cors',body:payload}).catch(()=>{});
-  }
+  if(GAS_URL.includes('YOUR_SCRIPT_ID'))return;
+  const obj={uid:USER_ID,event:event,ts:new Date().toISOString()};
+  Object.keys(data||{}).forEach(function(k){obj[k]=String(data[k]);});
+  const img=new Image();
+  img.src=GAS_URL+'?'+new URLSearchParams(obj).toString();
 }
-function ga4Event(name,params){if(typeof gtag==='function')gtag('event',name,params);}
+function ga4Event(n,p){if(typeof gtag==='function')gtag('event',n,p);}
 
-// ── 離脱トラッキング ─────────────────────────────────────────
+// ── 離脱トラッキング（GET方式） ──────────────────────────────
 const activeVideo={num:0,pct:0};
 function updateActiveVideo(num,pct){activeVideo.num=num;activeVideo.pct=pct;}
 
@@ -279,28 +294,28 @@ window.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='hidden'&&activeVideo.num>0){
     const key='ubase_v'+activeVideo.num+'_done';
     if(localStorage.getItem(key)!=='1'){
-      const payload=JSON.stringify({
-        uid:USER_ID,event:'video_exit',
-        video:activeVideo.num,pct:activeVideo.pct,
-        ts:new Date().toISOString()
-      });
+      // 離脱はsendBeacon（ページ閉じ時でも届く）+ img両方
+      const obj={uid:USER_ID,event:'video_exit',video:activeVideo.num,pct:activeVideo.pct,ts:new Date().toISOString()};
+      const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,String(v)]))).toString();
       if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
-        // sendBeaconはtext/plain Blobで確実に送信
-        const blob=new Blob([payload],{type:'text/plain'});
-        navigator.sendBeacon(GAS_URL,blob);
+        navigator.sendBeacon(GAS_URL+'?'+qs);
+        const img=new Image();img.src=GAS_URL+'?'+qs;
       }
     }
   }
 });
 
+// ── リジューム中フラグ（スキップ検知バグ回避） ────────────────
+// グローバルで管理することでdoResumeから操作可能
+const resumingFlag={};
+
 // ── STATE ────────────────────────────────────────────────────
 const VID='1191024711';
-const REQ=0.90;
+const MIN_WATCH_PCT=0.90; // endedイベント発火時に最低この%以上視聴していれば解放
 const st={
   v1done:localStorage.getItem('ubase_v1_done')==='1',
   v2done:localStorage.getItem('ubase_v2_done')==='1',
   v3done:localStorage.getItem('ubase_v3_done')==='1',
-  v1pos:+localStorage.getItem('ubase_v1_pos')||0,
 };
 const players={};
 
@@ -312,8 +327,7 @@ function setProgress(n,pct){
   document.getElementById('wp'+n+'w').classList.add('vis');
 }
 function markDone(n){
-  const c=document.getElementById('c'+n);
-  c.classList.remove('active','locked');c.classList.add('done');
+  const c=document.getElementById('c'+n);c.classList.remove('active','locked');c.classList.add('done');
   setStatus(n,'sd','✓ 視聴完了');
   const ps=document.getElementById('ps'+n);ps.classList.remove('active');ps.classList.add('done');
 }
@@ -336,13 +350,18 @@ function flash(text,sub){
   setTimeout(()=>el.classList.remove('active'),2800);
 }
 
-// リジューム（readyイベント後にsetCurrentTime）
+// リジューム：グローバルフラグでスキップ検知を回避
 function doResume(n){
   const pl=players[n];if(!pl)return;
   const pos=+localStorage.getItem('ubase_v'+n+'_pos')||0;
   if(pos<=0)return;
+  resumingFlag[n]=true; // スキップ検知を一時停止
   pl.ready().then(function(){
-    pl.setCurrentTime(pos).then(function(){pl.play();});
+    pl.setCurrentTime(pos).then(function(){
+      pl.play();
+      // 2秒後にフラグ解除（その間はスキップ検知しない）
+      setTimeout(function(){resumingFlag[n]=false;},2000);
+    });
   });
   document.getElementById('rb'+n).classList.remove('vis');
 }
@@ -352,51 +371,52 @@ function setupPlayer(n,afterLoad){
   if(n!==1){
     area.innerHTML='<div class="ew"><iframe id="if'+n+'" src="https://player.vimeo.com/video/'+VID+'?badge=0&autopause=0&player_id=v'+n+'&app_id=58479" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" title="UBASE 動画'+n+'"></iframe></div>';
   }
-  setTimeout(()=>{
+  resumingFlag[n]=false;
+  setTimeout(function(){
     const iframe=document.getElementById('if'+n);
     if(!iframe||typeof Vimeo==='undefined')return;
     const player=new Vimeo.Player(iframe);
     players[n]=player;
     let watched=new Set(JSON.parse(localStorage.getItem('ubase_v'+n+'_w')||'[]'));
     let dur=0,lastT=0;
-    player.getDuration().then(d=>{dur=d;if(afterLoad)afterLoad(player,d);});
+    player.getDuration().then(function(d){dur=d;if(afterLoad)afterLoad(player,d);});
     player.on('timeupdate',function(data){
-      const cur=data.seconds,sec=Math.floor(cur);
-      // スキップ検知：5秒以上ジャンプで元の位置に戻す
-      if(cur-lastT>5&&cur-lastT<dur*0.5){player.setCurrentTime(lastT+0.1);return;}
+      const cur=data.seconds;
+      const sec=Math.floor(cur);
+      // スキップ検知（リジューム中は除外）
+      if(!resumingFlag[n]&&cur-lastT>5&&cur-lastT<dur*0.5){
+        player.setCurrentTime(lastT+0.1);return;
+      }
       lastT=cur;
       watched.add(sec);
       localStorage.setItem('ubase_v'+n+'_w',JSON.stringify([...watched]));
-      localStorage.setItem('ubase_v'+n+'_pos',cur);
+      localStorage.setItem('ubase_v'+n+'_pos',String(cur));
       if(dur>0){
         const pct=Math.min(watched.size/dur*100,100);
         setProgress(n,pct);
         updateActiveVideo(n,Math.floor(pct));
-        // 25/50/75%の節目でトラッキング
-        [25,50,75].forEach(function(m){
-          const key='ubase_v'+n+'_m'+m;
-          if(pct>=m&&!localStorage.getItem(key)){
-            localStorage.setItem(key,'1');
-            sendEvent('video_milestone',{video:n,pct:m});
-            ga4Event('video_progress',{video_number:n,percent:m});
-          }
-        });
-        // 90%以上で完了
-        if(watched.size>=dur*REQ){
-          if(n===1&&!st.v1done){st.v1done=true;localStorage.setItem('ubase_v1_done','1');sendEvent('video1_complete',{video:1});ga4Event('video_complete',{video_number:1});onDone(1);}
-          if(n===2&&!st.v2done){st.v2done=true;localStorage.setItem('ubase_v2_done','1');sendEvent('video2_complete',{video:2});ga4Event('video_complete',{video_number:2});onDone(2);}
-          if(n===3&&!st.v3done){st.v3done=true;localStorage.setItem('ubase_v3_done','1');sendEvent('video3_complete',{video:3,notify:true});ga4Event('video_complete',{video_number:3});onDone(3);}
-        }
+        // 完了判定はendedイベントで行う
       }
     });
     // 倍速防止
     player.on('playbackratechange',function(d){if(d.playbackRate!==1)player.setPlaybackRate(1);});
+
+    // 完了判定：動画が自然に最後まで再生されたとき
+    // + スキップ防止：視聴済み%が MIN_WATCH_PCT 以上の場合のみ解放
+    player.on('ended',function(){
+      if(dur<=0)return;
+      const watchedPct = watched.size / dur;
+      if(watchedPct < MIN_WATCH_PCT) return; // スキップで最後に飛ばした場合は解放しない
+      if(n===1&&!st.v1done){st.v1done=true;localStorage.setItem('ubase_v1_done','1');sendEvent('video1_complete',{video:1});ga4Event('video_complete',{video_number:1});onDone(1);}
+      if(n===2&&!st.v2done){st.v2done=true;localStorage.setItem('ubase_v2_done','1');sendEvent('video2_complete',{video:2});ga4Event('video_complete',{video_number:2});onDone(2);}
+      if(n===3&&!st.v3done){st.v3done=true;localStorage.setItem('ubase_v3_done','1');sendEvent('video3_complete',{video:3,notify:true});ga4Event('video_complete',{video_number:3});onDone(3);}
+    });
   },800);
 }
 
 function onDone(n){
   flash(n===3?'視聴完了！':'動画'+(n+1)+'が解放されました',n===3?'エントリーフォームへ進んでください':'次の動画を視聴してください');
-  setTimeout(()=>{
+  setTimeout(function(){
     markDone(n);
     if(n===1){unlockCard(2,true);unlockEntry();document.getElementById('c2').scrollIntoView({behavior:'smooth',block:'center'});setupPlayer(2);}
     if(n===2){unlockCard(3,true);document.getElementById('c3').scrollIntoView({behavior:'smooth',block:'center'});setupPlayer(3);}
@@ -410,9 +430,8 @@ apiS.src='https://player.vimeo.com/api/player.js';
 document.head.appendChild(apiS);
 apiS.onload=function(){
   const pos1=+localStorage.getItem('ubase_v1_pos')||0;
-  setupPlayer(1,function(player,dur){
+  setupPlayer(1,function(player){
     if(!st.v1done&&pos1>10){
-      // readyを待ってからリジュームバナーを表示
       player.ready().then(function(){
         document.getElementById('rb1t').textContent=fmt(pos1)+'から';
         document.getElementById('rb1').classList.add('vis');
