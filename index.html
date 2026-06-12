@@ -305,9 +305,9 @@ window.addEventListener('visibilitychange',function(){
   }
 });
 
-// ── リジューム中フラグ（スキップ検知バグ回避） ────────────────
-// グローバルで管理することでdoResumeから操作可能
-const resumingFlag={};
+// ── シーク中の位置管理（スキップ検知バグ回避） ─────────────────
+// seekingTo[n] にセットすると、その位置到達まで検知を無効化
+const seekingTo={};
 
 // ── STATE ────────────────────────────────────────────────────
 const VID='1191024711';
@@ -355,12 +355,12 @@ function doResume(n){
   const pl=players[n];if(!pl)return;
   const pos=+localStorage.getItem('ubase_v'+n+'_pos')||0;
   if(pos<=0)return;
-  resumingFlag[n]=true; // スキップ検知を一時停止
+  seekingTo[n]=pos; // この位置に到達するまでスキップ検知を無効化
   pl.ready().then(function(){
     pl.setCurrentTime(pos).then(function(){
       pl.play();
-      // 2秒後にフラグ解除（その間はスキップ検知しない）
-      setTimeout(function(){resumingFlag[n]=false;},2000);
+      // 3秒後に解除（念のため長めに設定）
+      setTimeout(function(){delete seekingTo[n];},3000);
     });
   });
   document.getElementById('rb'+n).classList.remove('vis');
@@ -371,7 +371,7 @@ function setupPlayer(n,afterLoad){
   if(n!==1){
     area.innerHTML='<div class="ew"><iframe id="if'+n+'" src="https://player.vimeo.com/video/'+VID+'?badge=0&autopause=0&player_id=v'+n+'&app_id=58479" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" title="UBASE 動画'+n+'"></iframe></div>';
   }
-  resumingFlag[n]=false;
+  delete seekingTo[n]; // 初期化時にシーク状態をリセット
   setTimeout(function(){
     const iframe=document.getElementById('if'+n);
     if(!iframe||typeof Vimeo==='undefined')return;
@@ -383,11 +383,15 @@ function setupPlayer(n,afterLoad){
     player.on('timeupdate',function(data){
       const cur=data.seconds;
       const sec=Math.floor(cur);
-      // スキップ検知（リジューム中は除外）
-      if(!resumingFlag[n]&&cur-lastT>5&&cur-lastT<dur*0.5){
+      // スキップ検知（seekingTo[n]が設定されている間は除外）
+      if(seekingTo[n]!==undefined){
+        lastT=cur;
+        if(Math.abs(cur-seekingTo[n])<3) delete seekingTo[n];
+      } else if(cur-lastT>5&&cur-lastT<dur*0.5){
         player.setCurrentTime(lastT+0.1);return;
+      } else {
+        lastT=cur;
       }
-      lastT=cur;
       watched.add(sec);
       localStorage.setItem('ubase_v'+n+'_w',JSON.stringify([...watched]));
       localStorage.setItem('ubase_v'+n+'_pos',String(cur));
