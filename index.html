@@ -266,7 +266,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 })();
 
 // ── TRACKING CONFIG ──────────────────────────────────────────
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy/exec';
+const GAS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
 // セッションID
 function genSessionId(){
@@ -353,13 +353,14 @@ function flash(text,sub){
 // リジューム：グローバルフラグでスキップ検知を回避
 function doResume(n){
   const pl=players[n];if(!pl)return;
-  const pos=+localStorage.getItem('ubase_v'+n+'_pos')||0;
+  // セッション開始時に固定した位置を参照（再生中に上書きされない）
+  const RESUME_KEY='ubase_v'+n+'_resume_pos';
+  const pos=+localStorage.getItem(RESUME_KEY)||+localStorage.getItem('ubase_v'+n+'_pos')||0;
   if(pos<=0)return;
-  seekingTo[n]=pos; // この位置に到達するまでスキップ検知を無効化
+  seekingTo[n]=pos;
   pl.ready().then(function(){
     pl.setCurrentTime(pos).then(function(){
       pl.play();
-      // 3秒後に解除（念のため長めに設定）
       setTimeout(function(){delete seekingTo[n];},3000);
     });
   });
@@ -434,10 +435,16 @@ apiS.src='https://player.vimeo.com/api/player.js';
 document.head.appendChild(apiS);
 apiS.onload=function(){
   const pos1=+localStorage.getItem('ubase_v1_pos')||0;
+  // セッション開始時のリジューム位置を固定保存（再生中に上書きされない）
+  const RESUME_KEY='ubase_v1_resume_pos';
+  if(!st.v1done&&pos1>10){
+    localStorage.setItem(RESUME_KEY, String(pos1));
+  }
   setupPlayer(1,function(player){
-    if(!st.v1done&&pos1>10){
+    const resumePos=+localStorage.getItem(RESUME_KEY)||0;
+    if(!st.v1done&&resumePos>10){
       player.ready().then(function(){
-        document.getElementById('rb1t').textContent=fmt(pos1)+'から';
+        document.getElementById('rb1t').textContent=fmt(resumePos)+'から';
         document.getElementById('rb1').classList.add('vis');
       });
     }
