@@ -278,7 +278,7 @@ if(!USER_ID){USER_ID=genSessionId();localStorage.setItem(SESSION_KEY,USER_ID);}
 
 // イベント送信（GET方式 / CORS制限を完全回避）
 function sendEvent(event,data){
-  if(GAS_URL.includes('YOUR_SCRIPT_ID'))return;
+  if(GAS_URL.includes('https://script.google.com/macros/s/AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy/exec'))return;
   const obj={uid:USER_ID,event:event,ts:new Date().toISOString()};
   Object.keys(data||{}).forEach(function(k){obj[k]=String(data[k]);});
   const img=new Image();
