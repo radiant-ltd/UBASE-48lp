@@ -323,7 +323,8 @@ const seekingTo={};
 
 // ── STATE ────────────────────────────────────────────────────
 const VID='1191024711';
-const MIN_WATCH_PCT=0.90; // endedイベント発火時に最低この%以上視聴していれば解放
+const MIN_WATCH_PCT=0.90;
+console.log('[UBASE] GAS_URL:', GAS_URL.includes('YOUR_SCRIPT_ID') ? '❌ 未設定' : '✅ 設定済み'); // endedイベント発火時に最低この%以上視聴していれば解放
 const st={
   v1done:localStorage.getItem('ubase_v1_done')==='1',
   v2done:localStorage.getItem('ubase_v2_done')==='1',
@@ -397,10 +398,16 @@ function setupPlayer(n,afterLoad){
     if(!iframe||typeof Vimeo==='undefined')return;
     const player=new Vimeo.Player(iframe);
     players[n]=player;
+    console.log('[UBASE] ✅ 動画'+n+'プレイヤー初期化完了');
     let watched=new Set(JSON.parse(localStorage.getItem('ubase_v'+n+'_w')||'[]'));
     let dur=0,lastT=0;
-    player.getDuration().then(function(d){dur=d;if(afterLoad)afterLoad(player,d);});
+    player.getDuration().then(function(d){
+      dur=d;
+      console.log('[UBASE] 動画'+n+' 総尺:', Math.floor(d)+'秒');
+      if(afterLoad)afterLoad(player,d);
+    });
     player.on('timeupdate',function(data){
+      if(Math.floor(data.seconds)===5) console.log('[UBASE] 動画'+n+' 再生中 5秒到達');
       const cur=data.seconds;
       const sec=Math.floor(cur);
       // スキップ検知（seekingTo[n]が設定されている間は除外）
@@ -457,8 +464,10 @@ function onDone(n){
 // INIT
 const apiS=document.createElement('script');
 apiS.src='https://player.vimeo.com/api/player.js';
+apiS.onerror=function(){ console.error('[UBASE] ❌ Vimeo API 読み込み失敗'); };
 document.head.appendChild(apiS);
 apiS.onload=function(){
+  console.log('[UBASE] ✅ Vimeo API 読み込み完了');
   const pos1=+localStorage.getItem('ubase_v1_pos')||0;
   // セッション開始時のリジューム位置を固定保存（再生中に上書きされない）
   const RESUME_KEY='ubase_v1_resume_pos';
