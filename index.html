@@ -13,11 +13,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 
 /* UNLOCK ANIMATION */
 .uf{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;}
-.uf.active{animation:ufa 2.5s ease forwards;}
-@keyframes ufa{0%{opacity:0;background:rgba(6,199,85,0);}20%{opacity:1;background:rgba(6,199,85,0.2);}40%{background:rgba(6,199,85,0.1);}100%{opacity:0;background:rgba(6,199,85,0);}}
+.uf.active{animation:ufa 4s ease forwards;}
+@keyframes ufa{0%{opacity:0;background:rgba(6,199,85,0);}15%{opacity:1;background:rgba(6,199,85,0.55);}30%{background:rgba(6,199,85,0.45);}80%{background:rgba(6,199,85,0.45);opacity:1;}100%{opacity:0;background:rgba(6,199,85,0);}}
 .uf-inner{text-align:center;transform:scale(0.4);opacity:0;}
-.uf.active .uf-inner{animation:ufi 2.5s ease forwards;}
-@keyframes ufi{0%{transform:scale(0.4);opacity:0;}25%{transform:scale(1.1);opacity:1;}40%{transform:scale(1);opacity:1;}85%{transform:scale(1);opacity:1;}100%{transform:scale(1.05);opacity:0;}}
+.uf.active .uf-inner{animation:ufi 4s ease forwards;}
+@keyframes ufi{0%{transform:scale(0.4);opacity:0;}20%{transform:scale(1.05);opacity:1;}30%{transform:scale(1);opacity:1;}80%{transform:scale(1);opacity:1;}100%{transform:scale(1);opacity:0;}}
 .uf-icon{font-size:72px;display:block;margin-bottom:12px;}
 .uf-text{font-family:'Bebas Neue',sans-serif;font-size:clamp(24px,5vw,46px);letter-spacing:4px;color:#fff;text-shadow:0 0 40px rgba(6,199,85,0.9);display:block;margin-bottom:6px;}
 .uf-sub{font-size:14px;font-weight:700;color:rgba(255,255,255,0.8);}
@@ -234,21 +234,21 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   </div>
 
   <div class="le" id="le"><h3>🔒 エントリーフォーム</h3><p>動画1を最後まで視聴すると、エントリーフォームが解放されます。</p></div>
-  <div class="es" id="es"><h2>覚悟が決まった方へ</h2><p>エントリーフォームに進んでください。<br>面接の日程を調整させていただきます。</p><a href="#" class="be"
-  onclick="sendEvent('entry_click',{notify:true});ga4Event('entry_click',{});">
-  エントリーフォームへ進む
-</a>
-<p style="margin-top:16px;font-size:13px;opacity:.85;position:relative;">
-  面接の日程はJICOOから選択してください。
-</p>
-<a href="https://jicoo.com/YOUR_JICOO_URL"
-  target="_blank"
-  rel="noopener"
-  class="be"
-  style="margin-top:12px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);"
-  onclick="sendEvent('jicoo_click',{notify:true});ga4Event('jicoo_click',{});">
-  面接日程を選ぶ（JICOO）
-</a></div>
+  <div class="es" id="es">
+  <h2>覚悟が決まった方へ</h2>
+  <p>合う人だけ、面接でお待ちしています。</p>
+  <a href="#"
+    class="be"
+    onclick="
+      const url='https://jicoo.com/YOUR_JICOO_URL?uid='+USER_ID;
+      sendEvent('entry_click',{notify:true});
+      ga4Event('entry_click',{});
+      window.open(url,'_blank');
+      return false;
+    ">
+    合う人は、面接へ。
+  </a>
+</div>
   <div class="note">このページは登録から48時間のみアクセスできます。<br>ご不明な点はLINE公式アカウントよりご連絡ください。</div>
 </div>
 
@@ -274,7 +274,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 })();
 
 // ── TRACKING CONFIG ──────────────────────────────────────────
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy/exec';
+const GAS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
 // セッションID
 function genSessionId(){
@@ -360,7 +360,7 @@ function flash(text,sub){
   document.getElementById('uf-text').textContent=text;
   document.getElementById('uf-sub').textContent=sub;
   const el=document.getElementById('uf');el.classList.add('active');
-  setTimeout(()=>el.classList.remove('active'),2800);
+  setTimeout(()=>el.classList.remove('active'),4200);
 }
 
 // リジューム：グローバルフラグでスキップ検知を回避
@@ -457,7 +457,12 @@ function onDone(n){
       const rp3=+localStorage.getItem('ubase_v3_resume_pos')||0;
       if(!st.v3done&&rp3>10){player.ready().then(function(){document.getElementById('rb3t').textContent=fmt(rp3)+'から';document.getElementById('rb3').classList.add('vis');});}
     });}
-    if(n===3){document.getElementById('es').scrollIntoView({behavior:'smooth',block:'center'});}
+    if(n===3){
+      document.getElementById('es').scrollIntoView({behavior:'smooth',block:'center'});
+      // 動画3視聴完了でボタンテキストを変更
+      const btn=document.getElementById('entry-btn');
+      if(btn) btn.textContent='覚悟が決まった方はこちら';
+    }
   },2500);
 }
 
@@ -491,7 +496,11 @@ apiS.onload=function(){
     const rp3=+localStorage.getItem('ubase_v3_resume_pos')||0;
     if(!st.v3done&&rp3>10){player.ready().then(function(){document.getElementById('rb3t').textContent=fmt(rp3)+'から';document.getElementById('rb3').classList.add('vis');});}
   });}
-  if(st.v3done){markDone(3);}
+  if(st.v3done){
+    markDone(3);
+    const btn=document.getElementById('entry-btn');
+    if(btn) btn.textContent='覚悟が決まった方はこちら';
+  }
 };
 </script>
 </body>
