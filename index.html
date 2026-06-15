@@ -126,6 +126,63 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 .be:hover{opacity:.9;}
 
 .note{text-align:center;font-size:12px;color:rgba(255,255,255,0.2);margin-top:24px;line-height:1.8;}
+
+/* ── MOBILE ── */
+@media(max-width:600px){
+  .hdr{padding:10px 16px;}
+  .hdr-logo{font-size:18px;}
+  .hdr-badge{font-size:10px;padding:5px 10px;}
+  .cdb{padding:10px 16px;gap:6px;}
+  .cdn{font-size:24px;min-width:36px;}
+  .cdms{font-size:16px;min-width:28px;}
+  .cdsp{font-size:20px;}
+  .cdul{font-size:8px;}
+  .main{padding:24px 14px 60px;}
+  .intro h1{font-size:20px;}
+  .intro p{font-size:12px;}
+  .psteps{gap:4px;}
+  .ps{font-size:9px;}
+  .psd{width:9px;height:9px;}
+  .vch{padding:12px 14px;gap:10px;}
+  .vcn{font-size:28px;}
+  .vct{font-size:13px;}
+  .vcs{font-size:9px;padding:3px 8px;}
+  .wpw{padding:6px 14px;}
+  .rb{padding:8px 12px;font-size:11px;flex-wrap:wrap;gap:6px;}
+  .rbb{margin-left:0;width:100%;}
+  .vc-footer,.vcf{font-size:11px;padding:10px 14px;}
+  .notice{padding:12px 14px;gap:8px;}
+  .notice p{font-size:12px;}
+  .le{padding:20px 16px;}
+  .le h3{font-size:14px;}
+  .le p{font-size:12px;}
+  .es{padding:28px 16px;}
+  .es h2{font-size:18px;}
+  .es p{font-size:12px;}
+  .be{padding:14px 20px;font-size:13px;width:100%;text-align:center;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);}
+  .uf-icon{font-size:52px;}
+  .uf-text{font-size:clamp(18px,5vw,36px);}
+  .uf-sub{font-size:12px;}
+  .note{font-size:11px;}
+}
+
+/* ── MOBILE 追加 ── */
+@media(max-width:480px){
+  .hdr-badge span{display:none;}
+  .cdb{flex-wrap:wrap;gap:4px;}
+  .cdl{width:100%;text-align:center;font-size:10px;}
+  .cdn{font-size:20px;min-width:28px;}
+  .cdms{font-size:14px;min-width:22px;}
+  .cdsp{font-size:16px;padding-bottom:8px;}
+  .cdul{font-size:7px;}
+  .psteps{gap:2px;}
+  .ps{font-size:8px;gap:3px;}
+  .intro h1{font-size:18px;line-height:1.3;}
+  .vch{flex-wrap:wrap;}
+  .vcs{margin-left:0;width:100%;text-align:center;}
+  .uf-text{font-size:clamp(16px,6vw,32px);}
+  .action-bar-text{font-size:clamp(18px,5vw,32px);}
+}
 </style>
 </head>
 <body>
