@@ -97,6 +97,22 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 
 /* EMBED */
 .ew{position:relative;padding-bottom:56.25%;height:0;background:#000;}
+.ew::after{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:40px; /* Vimeoのタイトルバーをカバー */
+  z-index:10;
+  pointer-events:none; /* 再生ボタンは通過 */
+}
+/* Vimeoロゴエリア（右下）をカバー */
+.ew .vimeo-cover{
+  position:absolute;
+  bottom:0;right:0;
+  width:120px;height:40px;
+  z-index:10;
+  background:transparent;
+}
 .ew iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}
 
 /* LOCK OVERLAY */
@@ -183,6 +199,107 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   .uf-text{font-size:clamp(16px,6vw,32px);}
   .action-bar-text{font-size:clamp(18px,5vw,32px);}
 }
+
+/* ── 動画モバイル修正 ── */
+@media(max-width:600px){
+  /* 動画を縦画面で大きく表示 */
+  .ew{
+    position:relative;
+    padding-bottom:75%!important;
+    height:0;
+    background:#000;
+  }
+  .ew iframe{
+    position:absolute;
+    top:0;left:0;
+    width:100%!important;
+    height:100%!important;
+  }
+  /* Vimeoへの外部リンクを防ぐオーバーレイ（上部のみ） */
+  .ew::after{
+    content:'';
+    position:absolute;
+    top:0;left:0;right:0;
+    height:44px;
+    z-index:10;
+    background:transparent;
+    pointer-events:auto;
+  }
+}
+
+/* ── ④ 48時間LP 上部余白削減 ── */
+@media(max-width:600px){
+  .hdr{
+    padding:8px 14px!important;
+    min-height:44px;
+  }
+  .hdr-logo{font-size:16px!important;letter-spacing:3px!important;}
+  .hdr-badge{
+    font-size:9px!important;
+    padding:4px 8px!important;
+  }
+  .cdb{
+    padding:8px 12px!important;
+  }
+  .main{
+    padding:16px 14px 60px!important;
+  }
+  .intro{
+    margin-bottom:20px!important;
+  }
+  .intro h1{
+    font-size:17px!important;
+    margin-bottom:8px!important;
+  }
+  .intro p{
+    font-size:11px!important;
+  }
+}
+
+/* ── Vimeo外部リンクブロック + モバイル動画最適化 ── */
+.ew{position:relative;padding-bottom:56.25%;height:0;background:#000;overflow:hidden;}
+.ew iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}
+/* Vimeoロゴエリアをブロックするオーバーレイ */
+.ew::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;
+  width:80px;height:36px;
+  z-index:10;
+  background:transparent;
+  pointer-events:all;
+}
+@media(max-width:600px){
+  /* 縦画面でのプレイヤー最大化 */
+  .ew{
+    padding-bottom:56.25%;
+    width:100%;
+  }
+  /* 動画カード全体のpadding削減 */
+  .vch{padding:10px 12px;gap:8px;}
+  .vcn{font-size:26px;}
+  .vct{font-size:13px;line-height:1.3;}
+  .vcs{font-size:9px;padding:3px 8px;}
+}
+
+@media(max-width:600px){
+  .hdr{padding:8px 14px;}
+  .cdb{padding:8px 14px;gap:4px;}
+  .main{padding:16px 14px 60px;}
+  .intro{margin-bottom:20px;}
+  .intro h1{font-size:18px;margin-bottom:8px;}
+  .intro p{font-size:12px;}
+  .iey{margin-bottom:8px;font-size:9px;}
+}
+
+/* ── MOBILE HEADER FIX ── */
+@media(max-width:600px){
+  body{padding-top:0!important;}
+  .hdr{padding:10px 14px;}
+  .main{padding:20px 14px 60px;}
+  /* 動画を縦画面で大きく表示 */
+  .ew{padding-bottom:75%!important;} /* モバイルで少し縦長に */
+}
 </style>
 </head>
 <body>
@@ -251,7 +368,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
     </div>
     <div class="ew">
       <iframe id="if1"
-        src="https://player.vimeo.com/video/1191024711?badge=0&autopause=0&player_id=v1&app_id=58479"
+        src="https://player.vimeo.com/video/1191024711?badge=0&autopause=0&player_id=v1&app_id=58479&title=0&byline=0&portrait=0&pip=0&title=0&byline=0&portrait=0&dnt=1&title=0&byline=0&portrait=0&dnt=1"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
         title="UBASE 動画1"></iframe>
     </div>
@@ -440,7 +557,7 @@ function doResume(n){
 function setupPlayer(n,afterLoad){
   const area=document.getElementById('e'+n);
   if(n!==1){
-    area.innerHTML='<div class="ew"><iframe id="if'+n+'" src="https://player.vimeo.com/video/'+VID+'?badge=0&autopause=0&player_id=v'+n+'&app_id=58479" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" title="UBASE 動画'+n+'"></iframe></div>';
+    area.innerHTML='<div class="ew"><iframe id="if'+n+'" src="https://player.vimeo.com/video/'+VID+'?badge=0&autopause=0&player_id=v'+n+'&app_id=58479&title=0&byline=0&portrait=0&dnt=1" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" title="UBASE 動画'+n+'"></iframe></div>';
   }
   delete seekingTo[n];
   // セッション開始時のリジューム位置を固定（再生中に上書きされない）
