@@ -300,6 +300,36 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   /* 動画を縦画面で大きく表示 */
   .ew{padding-bottom:75%!important;} /* モバイルで少し縦長に */
 }
+
+/* ── 縦動画・全画面 ── */
+.ew-outer{position:relative;}
+.fs-btn{
+  position:absolute;
+  bottom:10px;right:10px;
+  z-index:20;
+  background:rgba(0,0,0,0.6);
+  border:1px solid rgba(255,255,255,0.3);
+  color:#fff;
+  font-size:11px;
+  font-family:'Noto Sans JP',sans-serif;
+  font-weight:700;
+  letter-spacing:1px;
+  padding:6px 12px;
+  cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+  transition:background .2s;
+}
+.fs-btn:hover{background:rgba(0,0,0,0.85);}
+.fs-btn svg{width:14px;height:14px;fill:#fff;}
+
+/* モバイルで縦動画（9:16）表示 */
+@media(max-width:600px){
+  .ew{padding-bottom:177.78%!important;} /* 9:16 */
+  .ew-outer{
+    max-width:calc(100vh * 9/16);
+    margin:0 auto;
+  }
+}
 </style>
 </head>
 <body>
@@ -427,6 +457,22 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 </div>
 
 <script>
+
+// ── 全画面表示 ────────────────────────────────────────────
+function goFullscreen(ewId) {
+  const el = document.getElementById(ewId);
+  if (!el) return;
+  const iframe = el.querySelector('iframe');
+  // iframeを全画面に
+  const target = iframe || el;
+  if (target.requestFullscreen) {
+    target.requestFullscreen();
+  } else if (target.webkitRequestFullscreen) {
+    target.webkitRequestFullscreen(); // iOS Safari
+  } else if (target.webkitEnterFullscreen) {
+    target.webkitEnterFullscreen();
+  }
+}
 // COUNTDOWN
 (function(){
   const KEY='ubase_start';
