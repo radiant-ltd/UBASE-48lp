@@ -334,6 +334,15 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 </head>
 <body>
 
+
+<!-- DEBUG PANEL（確認後削除） -->
+<div id="debug-panel" style="
+  position:fixed;bottom:70px;left:0;right:0;
+  background:rgba(0,0,0,0.85);color:#0f0;
+  font-size:11px;padding:8px 12px;z-index:9999;
+  max-height:120px;overflow-y:auto;
+  font-family:monospace;display:none;
+" id="dbg"></div>
 <!-- UNLOCK ANIMATION -->
 <div class="uf" id="uf">
   <div class="uf-inner">
@@ -483,7 +492,9 @@ function goFullscreen(ewId) {
   const end=s+48*3600*1000;
   function tick(){
     const r=end-Date.now();
-    if(r<=0){document.body.innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0D1B2E;color:#9AA3B0;font-size:14px;text-align:center;padding:40px;line-height:2;"><p>このページの公開期間が終了しました。<br>ご不明な点はLINEよりご連絡ください。</p></div>';return;}
+    // ※ 社内テスト中のため48時間制限を一時的に無効化
+    // if(r<=0){ 期間終了処理 }
+    if(r<0) r=0; // カウントダウンは0で止める（リダイレクトしない）
     const h=Math.floor(r/3600000),m=Math.floor(r%3600000/60000),ss=Math.floor(r%60000/1000),ms=Math.floor(r%1000/10);
     document.getElementById('cdh').textContent=String(h).padStart(2,'0');
     document.getElementById('cdm').textContent=String(m).padStart(2,'0');
@@ -506,8 +517,16 @@ if(!USER_ID){USER_ID=genSessionId();localStorage.setItem(SESSION_KEY,USER_ID);}
 
 // イベント送信（GET方式 / CORS制限を完全回避）
 function sendEvent(event,data){
+  // モバイルデバッグ表示
+  const dbg=document.getElementById('dbg');
+  if(dbg){
+    dbg.style.display='block';
+    dbg.innerHTML+='<div>'+new Date().toLocaleTimeString()+' '+event+'</div>';
+  }
   if(GAS_URL.includes('YOUR_SCRIPT_ID')){
-    console.warn('[UBASE] GAS_URLが未設定です');return;
+    console.warn('[UBASE] GAS_URLが未設定です');
+    if(dbg)dbg.innerHTML+='<div style="color:red">GAS_URL未設定</div>';
+    return;
   }
   const obj={uid:USER_ID,event:event,ts:new Date().toISOString()};
   Object.keys(data||{}).forEach(function(k){obj[k]=String(data[k]);});
@@ -662,7 +681,8 @@ function setupPlayer(n,afterLoad){
       if(n===2&&!st.v2done){st.v2done=true;localStorage.setItem('ubase_v2_done','1');sendEvent('video2_complete',{video:2});ga4Event('video_complete',{video_number:2});onDone(2);}
       if(n===3&&!st.v3done){st.v3done=true;localStorage.setItem('ubase_v3_done','1');sendEvent('video3_complete',{video:3,notify:true});ga4Event('video_complete',{video_number:3});onDone(3);}
     });
-  },800);
+  // モバイルはiframe読み込みが遅いため1500msに設定
+  },1500);
 }
 
 function onDone(n){
@@ -689,10 +709,14 @@ function onDone(n){
 // INIT
 const apiS=document.createElement('script');
 apiS.src='https://player.vimeo.com/api/player.js';
-apiS.onerror=function(){ console.error('[UBASE] ❌ Vimeo API 読み込み失敗'); };
+apiS.onerror=function(){ console.error('[UBASE] ❌ Vimeo API 読み込み失敗');
+  const dbgE=document.getElementById('dbg');
+  if(dbgE){dbgE.style.display='block';dbgE.innerHTML+='<div style="color:red">❌ Vimeo API 失敗</div>';} };
 document.head.appendChild(apiS);
 apiS.onload=function(){
   console.log('[UBASE] ✅ Vimeo API 読み込み完了');
+  const dbg2=document.getElementById('dbg');
+  if(dbg2){dbg2.style.display='block';dbg2.innerHTML+='<div>✅ Vimeo API OK</div>';}
   const pos1=+localStorage.getItem('ubase_v1_pos')||0;
   // セッション開始時のリジューム位置を固定保存（再生中に上書きされない）
   const RESUME_KEY='ubase_v1_resume_pos';
