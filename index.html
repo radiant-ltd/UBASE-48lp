@@ -330,6 +330,18 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
     margin:0 auto;
   }
 }
+
+/* Vimeoロゴのタップをブロック */
+.vimeo-logo-block {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 120px;
+  height: 52px;
+  z-index: 10;
+  background: transparent;
+  cursor: default;
+}
 </style>
 </head>
 <body>
@@ -466,23 +478,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 </div>
 
 <script>
-
-// ── 全画面表示 ────────────────────────────────────────────
-function goFullscreen(ewId) {
-  const el = document.getElementById(ewId);
-  if (!el) return;
-  const iframe = el.querySelector('iframe');
-  // iframeを全画面に
-  const target = iframe || el;
-  if (target.requestFullscreen) {
-    target.requestFullscreen();
-  } else if (target.webkitRequestFullscreen) {
-    target.webkitRequestFullscreen(); // iOS Safari
-  } else if (target.webkitEnterFullscreen) {
-    target.webkitEnterFullscreen();
-  }
-}
-// COUNTDOWN
+// ══ COUNTDOWN ════════════════════════════════════════════════
 (function(){
   const KEY='ubase_start';
   const p=new URLSearchParams(location.search);
@@ -491,11 +487,10 @@ function goFullscreen(ewId) {
   if(!s){s=Date.now();localStorage.setItem(KEY,s);}
   const end=s+48*3600*1000;
   function tick(){
-    const r=end-Date.now();
+    const r=Math.max(0,end-Date.now());
     // ※ 社内テスト中のため48時間制限を一時的に無効化
-    // if(r<=0){ 期間終了処理 }
-    if(r<0) r=0; // カウントダウンは0で止める（リダイレクトしない）
-    const h=Math.floor(r/3600000),m=Math.floor(r%3600000/60000),ss=Math.floor(r%60000/1000),ms=Math.floor(r%1000/10);
+    const h=Math.floor(r/3600000),m=Math.floor(r%3600000/60000),
+          ss=Math.floor(r%60000/1000),ms=Math.floor(r%1000/10);
     document.getElementById('cdh').textContent=String(h).padStart(2,'0');
     document.getElementById('cdm').textContent=String(m).padStart(2,'0');
     document.getElementById('cds').textContent=String(ss).padStart(2,'0');
@@ -504,110 +499,95 @@ function goFullscreen(ewId) {
   tick();setInterval(tick,50);
 })();
 
-// ── TRACKING CONFIG ──────────────────────────────────────────
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy/exec';
+// ══ TRACKING ═════════════════════════════════════════════════
+const GAS_URL='AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy';
 
-// セッションID
-function genSessionId(){
-  return 'sess_'+Math.random().toString(36).slice(2,10)+'_'+Date.now().toString(36);
-}
+function genSessionId(){return 'sess_'+Math.random().toString(36).slice(2,10)+'_'+Date.now().toString(36);}
 const SESSION_KEY='ubase_session_id';
 let USER_ID=localStorage.getItem(SESSION_KEY);
 if(!USER_ID){USER_ID=genSessionId();localStorage.setItem(SESSION_KEY,USER_ID);}
 
-// イベント送信（GET方式 / CORS制限を完全回避）
 function sendEvent(event,data){
-  // モバイルデバッグ表示
   const dbg=document.getElementById('dbg');
-  if(dbg){
-    dbg.style.display='block';
-    dbg.innerHTML+='<div>'+new Date().toLocaleTimeString()+' '+event+'</div>';
-  }
+  if(dbg){dbg.style.display='block';dbg.innerHTML+='<div>'+new Date().toLocaleTimeString()+' '+event+'</div>';}
   if(GAS_URL.includes('YOUR_SCRIPT_ID')){
-    console.warn('[UBASE] GAS_URLが未設定です');
-    if(dbg)dbg.innerHTML+='<div style="color:red">GAS_URL未設定</div>';
-    return;
+    if(dbg)dbg.innerHTML+='<div style="color:red">GAS_URL未設定</div>';return;
   }
   const obj={uid:USER_ID,event:event,ts:new Date().toISOString()};
   Object.keys(data||{}).forEach(function(k){obj[k]=String(data[k]);});
   const url=GAS_URL+'?'+new URLSearchParams(obj).toString();
   console.log('[UBASE] sendEvent:',event,url);
-  const img=new Image();
-  img.src=url;
+  const img=new Image();img.src=url;
 }
 function ga4Event(n,p){if(typeof gtag==='function')gtag('event',n,p);}
 
-// ── 離脱トラッキング（GET方式） ──────────────────────────────
+// ══ 離脱トラッキング ══════════════════════════════════════════
 const activeVideo={num:0,pct:0};
 function updateActiveVideo(num,pct){activeVideo.num=num;activeVideo.pct=pct;}
-
 window.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='hidden'&&activeVideo.num>0){
-    const key='ubase_v'+activeVideo.num+'_done';
-    if(localStorage.getItem(key)!=='1'){
-      // 離脱はsendBeacon（ページ閉じ時でも届く）+ img両方
+    if(localStorage.getItem('ubase_v'+activeVideo.num+'_done')!=='1'){
       const obj={uid:USER_ID,event:'video_exit',video:activeVideo.num,pct:activeVideo.pct,ts:new Date().toISOString()};
       const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,String(v)]))).toString();
-      if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
-        navigator.sendBeacon(GAS_URL+'?'+qs);
-        const img=new Image();img.src=GAS_URL+'?'+qs;
-      }
+      if(!GAS_URL.includes('YOUR_SCRIPT_ID')){navigator.sendBeacon(GAS_URL+'?'+qs);}
     }
   }
 });
 
-// ── シーク中の位置管理（スキップ検知バグ回避） ─────────────────
-// seekingTo[n] にセットすると、その位置到達まで検知を無効化
+// ══ シーク管理 ════════════════════════════════════════════════
 const seekingTo={};
 
-// ── STATE ────────────────────────────────────────────────────
+// ══ STATE ════════════════════════════════════════════════════
 const VID='1191024711';
 const MIN_WATCH_PCT=0.90;
-console.log('[UBASE] GAS_URL:', GAS_URL.includes('YOUR_SCRIPT_ID') ? '❌ 未設定' : '✅ 設定済み'); // endedイベント発火時に最低この%以上視聴していれば解放
 const st={
   v1done:localStorage.getItem('ubase_v1_done')==='1',
   v2done:localStorage.getItem('ubase_v2_done')==='1',
   v3done:localStorage.getItem('ubase_v3_done')==='1',
 };
 const players={};
+const pollingTimers={};
 
 function fmt(s){return Math.floor(s/60)+'分'+String(Math.floor(s%60)).padStart(2,'0')+'秒';}
-function setStatus(n,cls,txt){const el=document.getElementById('s'+n);el.className='vcs '+cls;el.textContent=txt;}
+function setStatus(n,cls,txt){const el=document.getElementById('s'+n);if(el){el.className='vcs '+cls;el.textContent=txt;}}
 function setProgress(n,pct){
-  document.getElementById('wp'+n+'b').style.width=pct+'%';
-  document.getElementById('wp'+n+'p').textContent=Math.floor(pct)+'%';
-  document.getElementById('wp'+n+'w').classList.add('vis');
+  const b=document.getElementById('wp'+n+'b'),p=document.getElementById('wp'+n+'p'),w=document.getElementById('wp'+n+'w');
+  if(b)b.style.width=pct+'%';
+  if(p)p.textContent=Math.floor(pct)+'%';
+  if(w)w.classList.add('vis');
 }
 function markDone(n){
-  const c=document.getElementById('c'+n);c.classList.remove('active','locked');c.classList.add('done');
+  const c=document.getElementById('c'+n);if(!c)return;
+  c.classList.remove('active','locked');c.classList.add('done');
   setStatus(n,'sd','✓ 視聴完了');
-  const ps=document.getElementById('ps'+n);ps.classList.remove('active');ps.classList.add('done');
+  const ps=document.getElementById('ps'+n);if(ps){ps.classList.remove('active');ps.classList.add('done');}
 }
 function unlockCard(n,anim){
-  const c=document.getElementById('c'+n);c.classList.remove('locked');c.classList.add('active');
+  const c=document.getElementById('c'+n);if(!c)return;
+  c.classList.remove('locked');c.classList.add('active');
   setStatus(n,'sw','解放済み');
-  document.getElementById('ps'+n).classList.add('active');
-  document.getElementById('wp'+n+'w').classList.add('vis');
+  const ps=document.getElementById('ps'+n);if(ps)ps.classList.add('active');
+  const wp=document.getElementById('wp'+n+'w');if(wp)wp.classList.add('vis');
   if(anim){const el=document.getElementById('n'+n);if(el)el.classList.add('vis');}
 }
 function unlockEntry(){
-  document.getElementById('le').style.display='none';
-  document.getElementById('es').classList.add('vis');
-  document.getElementById('ps4').classList.add('active');
+  const le=document.getElementById('le');if(le)le.style.display='none';
+  const es=document.getElementById('es');if(es)es.classList.add('vis');
+  const ps=document.getElementById('ps4');if(ps)ps.classList.add('active');
 }
 function flash(text,sub){
   document.getElementById('uf-text').textContent=text;
   document.getElementById('uf-sub').textContent=sub;
   const el=document.getElementById('uf');el.classList.add('active');
-  setTimeout(()=>el.classList.remove('active'),4200);
+  setTimeout(()=>el.classList.remove('active'),4300);
 }
 
-// リジューム：グローバルフラグでスキップ検知を回避
+// ══ リジューム ════════════════════════════════════════════════
 function doResume(n){
   const pl=players[n];if(!pl)return;
-  // セッション開始時に固定した位置を参照（再生中に上書きされない）
-  const RESUME_KEY='ubase_v'+n+'_resume_pos';
-  const pos=+localStorage.getItem(RESUME_KEY)||+localStorage.getItem('ubase_v'+n+'_pos')||0;
+  // セッション開始時に固定した位置を使用
+  const RKEY='ubase_v'+n+'_resume_pos';
+  const pos=+localStorage.getItem(RKEY)||+localStorage.getItem('ubase_v'+n+'_pos')||0;
   if(pos<=0)return;
   seekingTo[n]=pos;
   pl.ready().then(function(){
@@ -616,136 +596,163 @@ function doResume(n){
       setTimeout(function(){delete seekingTo[n];},3000);
     });
   });
-  document.getElementById('rb'+n).classList.remove('vis');
+  const rb=document.getElementById('rb'+n);if(rb)rb.classList.remove('vis');
+}
+
+// ══ PLAYER SETUP ═════════════════════════════════════════════
+function processTime(n,cur,dur,watched){
+  // シーク中は無視
+  if(seekingTo[n]!==undefined){
+    if(Math.abs(cur-seekingTo[n])<3)delete seekingTo[n];
+    return;
+  }
+  const sec=Math.floor(cur);
+  watched.add(sec);
+  localStorage.setItem('ubase_v'+n+'_pos',String(cur));
+  localStorage.setItem('ubase_v'+n+'_w',JSON.stringify([...watched]));
+  if(dur>0){
+    const pct=Math.min(watched.size/dur*100,100);
+    setProgress(n,pct);
+    updateActiveVideo(n,Math.floor(pct));
+  }
 }
 
 function setupPlayer(n,afterLoad){
   const area=document.getElementById('e'+n);
   if(n!==1){
-    area.innerHTML='<div class="ew"><iframe id="if'+n+'" src="https://player.vimeo.com/video/'+VID+'?badge=0&autopause=0&player_id=v'+n+'&app_id=58479&title=0&byline=0&portrait=0&dnt=1" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" title="UBASE 動画'+n+'"></iframe></div>';
+    area.innerHTML='<div class="ew" id="ew'+n+'" style="position:relative;"><div class="vimeo-logo-block"></div><iframe id="if'+n+'" src="https://player.vimeo.com/video/'+VID+'?badge=0&autopause=0&player_id=v'+n+'&app_id=58479&title=0&byline=0&portrait=0&pip=0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" allowfullscreen title="UBASE 動画'+n+'"></iframe><button class="fs-btn" onclick="goFullscreen('ew'+n+'')"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>全画面</button></div>';
   }
   delete seekingTo[n];
-  // セッション開始時のリジューム位置を固定（再生中に上書きされない）
-  const rkey='ubase_v'+n+'_resume_pos';
+
+  // セッション開始時のリジューム位置を固定
+  const RKEY='ubase_v'+n+'_resume_pos';
   const savedPos=+localStorage.getItem('ubase_v'+n+'_pos')||0;
-  const doneKey='ubase_v'+n+'_done';
-  if(!localStorage.getItem(doneKey)&&savedPos>10){
-    localStorage.setItem(rkey,String(savedPos));
+  if(!localStorage.getItem('ubase_v'+n+'_done')&&savedPos>10){
+    localStorage.setItem(RKEY,String(savedPos));
   }
-  setTimeout(function(){
+
+  // プレイヤー初期化はready()で確実に待つ
+  function initPlayer(){
     const iframe=document.getElementById('if'+n);
-    if(!iframe||typeof Vimeo==='undefined')return;
+    if(!iframe||typeof Vimeo==='undefined'){
+      console.warn('[UBASE] iframe or Vimeo not ready, retry...');
+      setTimeout(initPlayer,500);return;
+    }
     const player=new Vimeo.Player(iframe);
     players[n]=player;
-    console.log('[UBASE] ✅ 動画'+n+'プレイヤー初期化完了');
-    let watched=new Set(JSON.parse(localStorage.getItem('ubase_v'+n+'_w')||'[]'));
-    let dur=0,lastT=0;
-    player.getDuration().then(function(d){
-      dur=d;
-      console.log('[UBASE] 動画'+n+' 総尺:', Math.floor(d)+'秒');
-      if(afterLoad)afterLoad(player,d);
-    });
-    player.on('timeupdate',function(data){
-      if(Math.floor(data.seconds)===5) console.log('[UBASE] 動画'+n+' 再生中 5秒到達');
-      const cur=data.seconds;
-      const sec=Math.floor(cur);
-      // スキップ検知（seekingTo[n]が設定されている間は除外）
-      if(seekingTo[n]!==undefined){
-        lastT=cur;
-        if(Math.abs(cur-seekingTo[n])<3) delete seekingTo[n];
-      } else if(cur-lastT>5&&cur-lastT<dur*0.5){
-        player.setCurrentTime(lastT+0.1);return;
-      } else {
-        lastT=cur;
-      }
-      watched.add(sec);
-      localStorage.setItem('ubase_v'+n+'_w',JSON.stringify([...watched]));
-      localStorage.setItem('ubase_v'+n+'_pos',String(cur));
-      if(dur>0){
-        const pct=Math.min(watched.size/dur*100,100);
-        setProgress(n,pct);
-        updateActiveVideo(n,Math.floor(pct));
-        // 完了判定はendedイベントで行う
-      }
-    });
-    // 倍速防止
-    player.on('playbackratechange',function(d){if(d.playbackRate!==1)player.setPlaybackRate(1);});
+    console.log('[UBASE] Player created for video',n);
 
-    // 完了判定：動画が自然に最後まで再生されたとき
-    // + スキップ防止：視聴済み%が MIN_WATCH_PCT 以上の場合のみ解放
-    player.on('ended',function(){
-      if(dur<=0)return;
-      const watchedPct = watched.size / dur;
-      if(watchedPct < MIN_WATCH_PCT) return; // スキップで最後に飛ばした場合は解放しない
-      if(n===1&&!st.v1done){st.v1done=true;localStorage.setItem('ubase_v1_done','1');sendEvent('video1_complete',{video:1});ga4Event('video_complete',{video_number:1});onDone(1);}
-      if(n===2&&!st.v2done){st.v2done=true;localStorage.setItem('ubase_v2_done','1');sendEvent('video2_complete',{video:2});ga4Event('video_complete',{video_number:2});onDone(2);}
-      if(n===3&&!st.v3done){st.v3done=true;localStorage.setItem('ubase_v3_done','1');sendEvent('video3_complete',{video:3,notify:true});ga4Event('video_complete',{video_number:3});onDone(3);}
+    let watched=new Set(JSON.parse(localStorage.getItem('ubase_v'+n+'_w')||'[]'));
+    let dur=0,lastT=0,vDone=false;
+
+    // ready()を使って確実に初期化
+    player.ready().then(function(){
+      console.log('[UBASE] ✅ Player ready for video',n);
+      const dbg=document.getElementById('dbg');
+      if(dbg){dbg.style.display='block';dbg.innerHTML+='<div>✅ 動画'+n+' Player Ready</div>';}
+
+      player.getDuration().then(function(d){
+        dur=d;
+        console.log('[UBASE] Duration video'+n+':',d);
+        if(afterLoad)afterLoad(player,d);
+      });
+
+      // ── timeupdate（デスクトップ・一部Android）──
+      player.on('timeupdate',function(data){
+        const cur=data.seconds;
+        if(Math.abs(cur-lastT)<0.1)return;
+        lastT=cur;
+        processTime(n,cur,dur,watched);
+      });
+
+      // ── ポーリング（iOS Safari対応・確実に動く）──
+      if(pollingTimers[n])clearInterval(pollingTimers[n]);
+      pollingTimers[n]=setInterval(function(){
+        player.getPaused().then(function(paused){
+          if(paused)return;
+          player.getCurrentTime().then(function(cur){
+            if(Math.abs(cur-lastT)<0.1)return;
+            lastT=cur;
+            processTime(n,cur,dur,watched);
+          });
+        });
+      },800);
+
+      // ── 完了（ended + 90%以上）──
+      player.on('ended',function(){
+        if(dur<=0||vDone)return;
+        const pct=watched.size/dur;
+        if(pct<MIN_WATCH_PCT)return;
+        vDone=true;
+        if(pollingTimers[n])clearInterval(pollingTimers[n]);
+        if(n===1&&!st.v1done){st.v1done=true;localStorage.setItem('ubase_v1_done','1');sendEvent('video1_complete',{video:1});ga4Event('video_complete',{video_number:1});onDone(1);}
+        if(n===2&&!st.v2done){st.v2done=true;localStorage.setItem('ubase_v2_done','1');sendEvent('video2_complete',{video:2});ga4Event('video_complete',{video_number:2});onDone(2);}
+        if(n===3&&!st.v3done){st.v3done=true;localStorage.setItem('ubase_v3_done','1');sendEvent('video3_complete',{video:3,notify:'true'});ga4Event('video_complete',{video_number:3});onDone(3);}
+      });
+
+      // ── 倍速防止 ──
+      player.on('playbackratechange',function(d){if(d.playbackRate!==1)player.setPlaybackRate(1);});
+
+      // ── リジュームバナー表示 ──
+      const resumePos=+localStorage.getItem(RKEY)||0;
+      if(!localStorage.getItem('ubase_v'+n+'_done')&&resumePos>10){
+        const rb=document.getElementById('rb'+n);
+        const rbt=document.getElementById('rb'+n+'t');
+        if(rb&&rbt){rbt.textContent=fmt(resumePos)+'から';rb.classList.add('vis');}
+      }
+
+    }).catch(function(e){
+      console.error('[UBASE] Player ready error:',e);
     });
-  // モバイルはiframe読み込みが遅いため1500msに設定
-  },1500);
+  }
+
+  setTimeout(initPlayer,300);
 }
 
 function onDone(n){
   flash(n===3?'視聴完了！':'動画'+(n+1)+'が解放されました',n===3?'エントリーフォームへ進んでください':'次の動画を視聴してください');
   setTimeout(function(){
     markDone(n);
-    if(n===1){unlockCard(2,true);unlockEntry();document.getElementById('c2').scrollIntoView({behavior:'smooth',block:'center'});setupPlayer(2,function(player){
-      const rp2=+localStorage.getItem('ubase_v2_resume_pos')||0;
-      if(!st.v2done&&rp2>10){player.ready().then(function(){document.getElementById('rb2t').textContent=fmt(rp2)+'から';document.getElementById('rb2').classList.add('vis');});}
-    });}
-    if(n===2){unlockCard(3,true);document.getElementById('c3').scrollIntoView({behavior:'smooth',block:'center'});setupPlayer(3,function(player){
-      const rp3=+localStorage.getItem('ubase_v3_resume_pos')||0;
-      if(!st.v3done&&rp3>10){player.ready().then(function(){document.getElementById('rb3t').textContent=fmt(rp3)+'から';document.getElementById('rb3').classList.add('vis');});}
-    });}
+    if(n===1){unlockCard(2,true);unlockEntry();const c2=document.getElementById('c2');if(c2)c2.scrollIntoView({behavior:'smooth',block:'center'});setupPlayer(2);}
+    if(n===2){unlockCard(3,true);const c3=document.getElementById('c3');if(c3)c3.scrollIntoView({behavior:'smooth',block:'center'});setupPlayer(3);}
     if(n===3){
-      document.getElementById('es').scrollIntoView({behavior:'smooth',block:'center'});
-      // 動画3視聴完了でボタンテキストを変更
-      const btn=document.getElementById('entry-btn');
-      if(btn) btn.textContent='覚悟が決まった方はこちら';
+      const es=document.getElementById('es');if(es)es.scrollIntoView({behavior:'smooth',block:'center'});
+      const btn=document.getElementById('entry-btn');if(btn)btn.textContent='覚悟が決まった方はこちら';
     }
   },2500);
 }
 
-// INIT
+// ══ 全画面 ════════════════════════════════════════════════════
+function goFullscreen(ewId){
+  const el=document.getElementById(ewId);if(!el)return;
+  const iframe=el.querySelector('iframe');
+  const target=iframe||el;
+  if(target.requestFullscreen)target.requestFullscreen();
+  else if(target.webkitRequestFullscreen)target.webkitRequestFullscreen();
+  else if(target.webkitEnterFullscreen)target.webkitEnterFullscreen();
+}
+
+// ══ INIT ═════════════════════════════════════════════════════
 const apiS=document.createElement('script');
 apiS.src='https://player.vimeo.com/api/player.js';
-apiS.onerror=function(){ console.error('[UBASE] ❌ Vimeo API 読み込み失敗');
-  const dbgE=document.getElementById('dbg');
-  if(dbgE){dbgE.style.display='block';dbgE.innerHTML+='<div style="color:red">❌ Vimeo API 失敗</div>';} };
-document.head.appendChild(apiS);
 apiS.onload=function(){
-  console.log('[UBASE] ✅ Vimeo API 読み込み完了');
-  const dbg2=document.getElementById('dbg');
-  if(dbg2){dbg2.style.display='block';dbg2.innerHTML+='<div>✅ Vimeo API OK</div>';}
-  const pos1=+localStorage.getItem('ubase_v1_pos')||0;
-  // セッション開始時のリジューム位置を固定保存（再生中に上書きされない）
-  const RESUME_KEY='ubase_v1_resume_pos';
-  if(!st.v1done&&pos1>10){
-    localStorage.setItem(RESUME_KEY, String(pos1));
-  }
-  setupPlayer(1,function(player){
-    const resumePos=+localStorage.getItem(RESUME_KEY)||0;
-    if(!st.v1done&&resumePos>10){
-      player.ready().then(function(){
-        document.getElementById('rb1t').textContent=fmt(resumePos)+'から';
-        document.getElementById('rb1').classList.add('vis');
-      });
-    }
-  });
-  if(st.v1done){markDone(1);unlockCard(2,false);unlockEntry();setupPlayer(2,function(player){
-    const rp2=+localStorage.getItem('ubase_v2_resume_pos')||0;
-    if(!st.v2done&&rp2>10){player.ready().then(function(){document.getElementById('rb2t').textContent=fmt(rp2)+'から';document.getElementById('rb2').classList.add('vis');});}
-  });}
-  if(st.v2done){markDone(2);unlockCard(3,false);setupPlayer(3,function(player){
-    const rp3=+localStorage.getItem('ubase_v3_resume_pos')||0;
-    if(!st.v3done&&rp3>10){player.ready().then(function(){document.getElementById('rb3t').textContent=fmt(rp3)+'から';document.getElementById('rb3').classList.add('vis');});}
-  });}
+  console.log('[UBASE] ✅ Vimeo API loaded');
+  const dbg=document.getElementById('dbg');
+  if(dbg){dbg.style.display='block';dbg.innerHTML+='<div>✅ Vimeo API OK</div>';}
+  setupPlayer(1);
+  if(st.v1done){markDone(1);unlockCard(2,false);unlockEntry();setupPlayer(2);}
+  if(st.v2done){markDone(2);unlockCard(3,false);setupPlayer(3);}
   if(st.v3done){
     markDone(3);
-    const btn=document.getElementById('entry-btn');
-    if(btn) btn.textContent='覚悟が決まった方はこちら';
+    const btn=document.getElementById('entry-btn');if(btn)btn.textContent='覚悟が決まった方はこちら';
   }
 };
+apiS.onerror=function(){
+  console.error('[UBASE] ❌ Vimeo API failed');
+  const dbg=document.getElementById('dbg');
+  if(dbg){dbg.style.display='block';dbg.innerHTML+='<div style="color:red">❌ Vimeo API 失敗</div>';}
+};
+document.head.appendChild(apiS);
 </script>
 </body>
 </html>
