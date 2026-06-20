@@ -531,13 +531,15 @@ const activeVideo={num:0,pct:0};
 function updateActiveVideo(num,pct){activeVideo.num=num;activeVideo.pct=pct;}
 let exitSent=false; // 重複送信防止フラグ
 function sendExitEvent(){
-  if(exitSent)return; // すでに送信済みなら無視
+  if(exitSent)return; // 重複送信防止
   if(activeVideo.num>0&&localStorage.getItem('ubase_v'+activeVideo.num+'_done')!=='1'){
     exitSent=true;
     const obj={uid:USER_ID,event:'video_exit',video:activeVideo.num,pct:activeVideo.pct,ts:new Date().toISOString()};
     const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(function(e){return[e[0],String(e[1])];}))).toString();
     if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
-      navigator.sendBeacon(GAS_URL+'?'+qs);
+      // sendBeacon（Chrome等）+ img（LINE WebView対応）
+      try{navigator.sendBeacon(GAS_URL+'?'+qs);}catch(e){}
+      const img=new Image();img.src=GAS_URL+'?'+qs;
     }
   }
 }
