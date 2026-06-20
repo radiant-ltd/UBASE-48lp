@@ -477,9 +477,26 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   <div class="note">このページは登録から48時間のみアクセスできます。<br>ご不明な点はLINE公式アカウントよりご連絡ください。</div>
 </div>
 
+
 <script>
+// ══ エラーキャッチ（デバッグ用） ════════════════════════════
+window.onerror=function(msg,src,line,col,err){
+  const d=document.getElementById('dbg');
+  if(d){d.style.display='block';d.innerHTML+='<div style="color:red">❌ JS ERROR: '+msg+' (line:'+line+')</div>';}
+  return false;
+};
+window.addEventListener('unhandledrejection',function(e){
+  const d=document.getElementById('dbg');
+  if(d){d.style.display='block';d.innerHTML+='<div style="color:red">❌ Promise error: '+e.reason+'</div>';}
+});
+
 // ══ COUNTDOWN ════════════════════════════════════════════════
 (function(){
+  // IIFEが実行されたことをすぐに表示
+  (function(){
+    const d=document.getElementById('dbg');
+    if(d){d.style.display='block';d.innerHTML+='<div style="color:cyan">▶ IIFE開始</div>';}
+  })();
   const KEY='ubase_start';
   const p=new URLSearchParams(location.search);
 
