@@ -499,10 +499,17 @@ window.addEventListener('unhandledrejection',function(e){
   (function(){
     const d=document.querySelector('#dbg')||document.querySelector('.debug-panel');
     if(d){d.style.display='block';d.innerHTML+='<div style="color:cyan">▶ IIFE開始 '+Date.now()+'</div>';}
-    // ヘッダーのバッジを変更（JS確認用）
     const badge=document.querySelector('.hdr-badge');
     if(badge)badge.style.background='rgba(0,200,0,0.3)';
   })();
+  // ページ閲覧イベント（再生しなかった人も把握できる）
+  // 初回アクセス時のみ記録（リロードでは重複しない）
+  if(!sessionStorage.getItem('ubase_pv')){
+    sessionStorage.setItem('ubase_pv','1');
+    setTimeout(function(){
+      sendEvent('page_view',{page:'48h_lp'});
+    },2000); // 2秒後に記録（直帰も含む）
+  }
   const KEY='ubase_start';
   const p=new URLSearchParams(location.search);
 
@@ -668,6 +675,14 @@ function processTime(n,cur,dur,watched){
     const pct=Math.min(watched.size/dur*100,100);
     setProgress(n,pct);
     updateActiveVideo(n,Math.floor(pct));
+    // 25/50/75%通過時に記録
+    [25,50,75].forEach(function(m){
+      const mk='ubase_v'+n+'_m'+m;
+      if(pct>=m&&!localStorage.getItem(mk)){
+        localStorage.setItem(mk,'1');
+        sendEvent('video_milestone',{video:n,pct:m});
+      }
+    });
   }
 }
 
