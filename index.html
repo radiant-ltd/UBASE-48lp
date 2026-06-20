@@ -517,12 +517,31 @@ const SESSION_KEY='ubase_session_id';
 let USER_ID=localStorage.getItem(SESSION_KEY);
 if(!USER_ID){USER_ID=genSessionId();localStorage.setItem(SESSION_KEY,USER_ID);}
 
+// ブラウザ判定
+const UA=navigator.userAgent;
+const isLINE=UA.includes('Line/');
+const isSafari=/^((?!chrome|android).)*safari/i.test(UA);
+const browserName=isLINE?'LINE':UA.includes('Chrome')?'Chrome':isSafari?'Safari':'Other';
+
 function sendEvent(event,data){
   if(GAS_URL.includes('YOUR_SCRIPT_ID'))return;
-  const obj={uid:USER_ID,event:event,ts:new Date().toISOString()};
+  const obj={uid:USER_ID,event:event,ts:new Date().toISOString(),browser:browserName};
   Object.keys(data||{}).forEach(function(k){obj[k]=String(data[k]);});
-  const url=GAS_URL+'?'+new URLSearchParams(obj).toString();
-  const img=new Image();img.src=url;
+  const qs=new URLSearchParams(obj).toString();
+  const url=GAS_URL+'?'+qs;
+  if(isLINE){
+    // LINE WebView: img.srcのみ
+    const img=new Image();img.src=url;
+  } else {
+    // Chrome/Safari: sendBeacon（ページ終了時も確実）
+    try{
+      if(navigator.sendBeacon){
+        navigator.sendBeacon(url);
+      } else {
+        const img=new Image();img.src=url;
+      }
+    }catch(e){const img=new Image();img.src=url;}
+  }
 }
 function ga4Event(n,p){if(typeof gtag==='function')gtag('event',n,p);}
 
@@ -534,11 +553,18 @@ function sendExitEvent(){
   if(exitSent)return; // 重複送信防止
   if(activeVideo.num>0&&localStorage.getItem('ubase_v'+activeVideo.num+'_done')!=='1'){
     exitSent=true;
-    const obj={uid:USER_ID,event:'video_exit',video:activeVideo.num,pct:activeVideo.pct,ts:new Date().toISOString()};
+    const obj={uid:USER_ID,event:'video_exit',video:activeVideo.num,pct:activeVideo.pct,ts:new Date().toISOString(),browser:browserName};
     const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(function(e){return[e[0],String(e[1])];}))).toString();
     if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
-      // img.srcのみ（Chrome・LINE両対応・重複なし）
-      const img=new Image();img.src=GAS_URL+'?'+qs;
+      // ブラウザ別に最適な送信方法を使用
+      if(isLINE){
+        const img=new Image();img.src=GAS_URL+'?'+qs;
+      } else {
+        try{
+          if(navigator.sendBeacon){navigator.sendBeacon(GAS_URL+'?'+qs);}
+          else{const img=new Image();img.src=GAS_URL+'?'+qs;}
+        }catch(e){const img=new Image();img.src=GAS_URL+'?'+qs;}
+      }
     }
   }
 }
