@@ -482,6 +482,14 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 (function(){
   const KEY='ubase_start';
   const p=new URLSearchParams(location.search);
+
+  // ?reset=1 でLocalStorageを全リセット（テスト用）
+  if(p.get('reset')==='1'){
+    localStorage.clear();
+    window.location.href=location.pathname;
+    return;
+  }
+
   const us=p.get('start');
   let s=us&&!isNaN(+us)?+us:+(localStorage.getItem(KEY)||0);
   if(!s){s=Date.now();localStorage.setItem(KEY,s);}
@@ -500,7 +508,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 })();
 
 // ══ TRACKING ═════════════════════════════════════════════════
-const GAS_URL='AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy';
+const GAS_URL='https://script.google.com/macros/s/AKfycbxL8sZF_SIKwquxznCzLLjob5tPOtGETSzWjtLrFd9p__jtGr4SaG_5QxVjkiFKA0Gy/exec';
 
 function genSessionId(){return 'sess_'+Math.random().toString(36).slice(2,10)+'_'+Date.now().toString(36);}
 const SESSION_KEY='ubase_session_id';
