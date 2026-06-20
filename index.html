@@ -523,25 +523,27 @@ const isLINE=UA.includes('Line/');
 const isSafari=/^((?!chrome|android).)*safari/i.test(UA);
 const browserName=isLINE?'LINE':UA.includes('Chrome')?'Chrome':isSafari?'Safari':'Other';
 
+function sendGet(url){
+  // fetch keepalive（GET・ページ終了後も送信・Chrome/Safari対応）
+  // LINE WebViewはfetchが不安定なのでimg.srcを使用
+  if(!isLINE&&typeof fetch==='function'){
+    try{
+      fetch(url,{method:'GET',keepalive:true}).catch(function(){
+        const img=new Image();img.src=url;
+      });
+      return;
+    }catch(e){}
+  }
+  // フォールバック：img.src（LINE・古いブラウザ対応）
+  const img=new Image();img.src=url;
+}
+
 function sendEvent(event,data){
   if(GAS_URL.includes('YOUR_SCRIPT_ID'))return;
   const obj={uid:USER_ID,event:event,ts:new Date().toISOString(),browser:browserName};
   Object.keys(data||{}).forEach(function(k){obj[k]=String(data[k]);});
-  const qs=new URLSearchParams(obj).toString();
-  const url=GAS_URL+'?'+qs;
-  if(isLINE){
-    // LINE WebView: img.srcのみ
-    const img=new Image();img.src=url;
-  } else {
-    // Chrome/Safari: sendBeacon（ページ終了時も確実）
-    try{
-      if(navigator.sendBeacon){
-        navigator.sendBeacon(url);
-      } else {
-        const img=new Image();img.src=url;
-      }
-    }catch(e){const img=new Image();img.src=url;}
-  }
+  const url=GAS_URL+'?'+new URLSearchParams(obj).toString();
+  sendGet(url);
 }
 function ga4Event(n,p){if(typeof gtag==='function')gtag('event',n,p);}
 
@@ -556,15 +558,7 @@ function sendExitEvent(){
     const obj={uid:USER_ID,event:'video_exit',video:activeVideo.num,pct:activeVideo.pct,ts:new Date().toISOString(),browser:browserName};
     const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(function(e){return[e[0],String(e[1])];}))).toString();
     if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
-      // ブラウザ別に最適な送信方法を使用
-      if(isLINE){
-        const img=new Image();img.src=GAS_URL+'?'+qs;
-      } else {
-        try{
-          if(navigator.sendBeacon){navigator.sendBeacon(GAS_URL+'?'+qs);}
-          else{const img=new Image();img.src=GAS_URL+'?'+qs;}
-        }catch(e){const img=new Image();img.src=GAS_URL+'?'+qs;}
-      }
+      sendGet(GAS_URL+'?'+qs);
     }
   }
 }
