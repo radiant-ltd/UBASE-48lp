@@ -336,11 +336,12 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 120px;
-  height: 52px;
-  z-index: 10;
+  width: 140px;
+  height: 60px;
+  z-index: 9999;
   background: transparent;
   cursor: default;
+  pointer-events: all;
 }
 </style>
 </head>
@@ -353,8 +354,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   background:rgba(0,0,0,0.85);color:#0f0;
   font-size:11px;padding:8px 12px;z-index:9999;
   max-height:120px;overflow-y:auto;
-  font-family:monospace;display:block;
-" id="dbg"><div style="color:yellow">▶ JS起動</div></div>
+  font-family:monospace;display:none;
+" id="dbg"></div>
 <!-- UNLOCK ANIMATION -->
 <div class="uf" id="uf">
   <div class="uf-inner">
@@ -480,8 +481,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 
 <script>
 // ══ 最初の1行：JSが動いているか確認 ═══════════════════════
-document.title='JS動作中';  // タブのタイトルが変わればJSは動いている
-
 // ══ エラーキャッチ（デバッグ用） ════════════════════════════
 window.onerror=function(msg,src,line,col,err){
   const d=document.querySelector('#dbg')||document.getElementById('dbg')||document.querySelector('.debug-panel');
@@ -499,8 +498,7 @@ window.addEventListener('unhandledrejection',function(e){
   (function(){
     const d=document.querySelector('#dbg')||document.querySelector('.debug-panel');
     if(d){d.style.display='block';d.innerHTML+='<div style="color:cyan">▶ IIFE開始 '+Date.now()+'</div>';}
-    const badge=document.querySelector('.hdr-badge');
-    if(badge)badge.style.background='rgba(0,200,0,0.3)';
+
   })();
   // ページ閲覧イベント（再生しなかった人も把握できる）
   // 初回アクセス時のみ記録（リロードでは重複しない）
@@ -579,15 +577,21 @@ function ga4Event(n,p){if(typeof gtag==='function')gtag('event',n,p);}
 // ══ 離脱トラッキング ══════════════════════════════════════════
 const activeVideo={num:0,pct:0};
 function updateActiveVideo(num,pct){activeVideo.num=num;activeVideo.pct=pct;}
-window.addEventListener('visibilitychange',function(){
-  if(document.visibilityState==='hidden'&&activeVideo.num>0){
-    if(localStorage.getItem('ubase_v'+activeVideo.num+'_done')!=='1'){
-      const obj={uid:USER_ID,event:'video_exit',video:activeVideo.num,pct:activeVideo.pct,ts:new Date().toISOString()};
-      const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,String(v)]))).toString();
-      if(!GAS_URL.includes('YOUR_SCRIPT_ID')){navigator.sendBeacon(GAS_URL+'?'+qs);}
+function sendExitEvent(){
+  if(activeVideo.num>0&&localStorage.getItem('ubase_v'+activeVideo.num+'_done')!=='1'){
+    const obj={uid:USER_ID,event:'video_exit',video:activeVideo.num,pct:activeVideo.pct,ts:new Date().toISOString()};
+    const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,String(v)]))).toString();
+    if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
+      navigator.sendBeacon(GAS_URL+'?'+qs);
+      const img=new Image();img.src=GAS_URL+'?'+qs; // 二重送信で確実に
     }
   }
+}
+window.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden') sendExitEvent();
 });
+window.addEventListener('beforeunload',function(){ sendExitEvent(); });
+window.addEventListener('pagehide',function(){ sendExitEvent(); });
 
 // ══ シーク管理 ════════════════════════════════════════════════
 const seekingTo={};
@@ -675,11 +679,11 @@ function processTime(n,cur,dur,watched){
     const pct=Math.min(watched.size/dur*100,100);
     setProgress(n,pct);
     updateActiveVideo(n,Math.floor(pct));
-    // 25/50/75%通過時に記録
+    // 25/50/75%通過時に記録（セッション毎・sessionStorageで重複防止）
     [25,50,75].forEach(function(m){
-      const mk='ubase_v'+n+'_m'+m;
-      if(pct>=m&&!localStorage.getItem(mk)){
-        localStorage.setItem(mk,'1');
+      const mk='sv'+n+'_m'+m;
+      if(pct>=m&&!sessionStorage.getItem(mk)){
+        sessionStorage.setItem(mk,'1');
         sendEvent('video_milestone',{video:n,pct:m});
       }
     });
@@ -724,6 +728,13 @@ function setupPlayer(n,afterLoad){
       player.getDuration().then(function(d){
         dur=d;
         console.log('[UBASE] Duration video'+n+':',d);
+        // 保存済みの視聴進捗を復元して表示
+        if(dur>0&&watched.size>0){
+          const savedPct=Math.min(watched.size/dur*100,100);
+          setProgress(n,savedPct);
+          updateActiveVideo(n,Math.floor(savedPct));
+          console.log('[UBASE] Restored progress video'+n+': '+Math.floor(savedPct)+'%');
+        }
         if(afterLoad)afterLoad(player,d);
       });
 
