@@ -353,8 +353,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   background:rgba(0,0,0,0.85);color:#0f0;
   font-size:11px;padding:8px 12px;z-index:9999;
   max-height:120px;overflow-y:auto;
-  font-family:monospace;display:none;
-" id="dbg"></div>
+  font-family:monospace;display:block;
+" id="dbg"><div style="color:yellow">▶ JS起動</div></div>
 <!-- UNLOCK ANIMATION -->
 <div class="uf" id="uf">
   <div class="uf-inner">
@@ -504,7 +504,21 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
     document.getElementById('cds').textContent=String(ss).padStart(2,'0');
     document.getElementById('cdms').textContent=String(ms).padStart(2,'0');
   }
-  tick();setInterval(tick,50);
+  // requestAnimationFrame方式（モバイルで最も確実）
+  function rafTick(){
+    try{
+      tick();
+    }catch(e){
+      const dbgEl=document.getElementById('dbg');
+      if(dbgEl)dbgEl.innerHTML+='<div style="color:red">❌ tick error:'+e.message+'</div>';
+    }
+    requestAnimationFrame(rafTick);
+  }
+  rafTick();
+
+  // デバッグログ
+  const dbgEl=document.getElementById('dbg');
+  if(dbgEl)dbgEl.innerHTML+='<div style="color:#0f0">✅ カウントダウン開始 end='+end+'</div>';
 })();
 
 // ══ TRACKING ═════════════════════════════════════════════════
@@ -609,6 +623,12 @@ function doResume(n){
 
 // ══ PLAYER SETUP ═════════════════════════════════════════════
 function processTime(n,cur,dur,watched){
+  // デバッグ（5秒ごとに表示）
+  if(Math.floor(cur)%5===0&&Math.floor(cur)>0&&Math.floor(cur)!==processTime._last){
+    processTime._last=Math.floor(cur);
+    const d2=document.getElementById('dbg');
+    if(d2)d2.innerHTML+='<div style="color:#0f0">▶ 動画'+n+' '+Math.floor(cur)+'秒 dur='+Math.floor(dur)+'</div>';
+  }
   // シーク中は無視
   if(seekingTo[n]!==undefined){
     if(Math.abs(cur-seekingTo[n])<3)delete seekingTo[n];
