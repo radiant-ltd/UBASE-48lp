@@ -348,7 +348,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 
 
 <!-- DEBUG PANEL（確認後削除） -->
-<div id="debug-panel" style="
+<div class="debug-panel" style="
   position:fixed;bottom:70px;left:0;right:0;
   background:rgba(0,0,0,0.85);color:#0f0;
   font-size:11px;padding:8px 12px;z-index:9999;
@@ -503,7 +503,7 @@ window.addEventListener('unhandledrejection',function(e){
   // ?reset=1 でLocalStorageを全リセット（テスト用）
   if(p.get('reset')==='1'){
     localStorage.clear();
-    window.location.href=location.pathname;
+    window.location.reload();
     return;
   }
 
@@ -513,13 +513,16 @@ window.addEventListener('unhandledrejection',function(e){
   const end=s+48*3600*1000;
   function tick(){
     const r=Math.max(0,end-Date.now());
-    // ※ 社内テスト中のため48時間制限を一時的に無効化
     const h=Math.floor(r/3600000),m=Math.floor(r%3600000/60000),
           ss=Math.floor(r%60000/1000),ms=Math.floor(r%1000/10);
-    document.getElementById('cdh').textContent=String(h).padStart(2,'0');
-    document.getElementById('cdm').textContent=String(m).padStart(2,'0');
-    document.getElementById('cds').textContent=String(ss).padStart(2,'0');
-    document.getElementById('cdms').textContent=String(ms).padStart(2,'0');
+    const eh=document.getElementById('cdh');
+    const em=document.getElementById('cdm');
+    const es2=document.getElementById('cds');
+    const ems=document.getElementById('cdms');
+    if(eh)eh.textContent=String(h).padStart(2,'0');
+    if(em)em.textContent=String(m).padStart(2,'0');
+    if(es2)es2.textContent=String(ss).padStart(2,'0');
+    if(ems)ems.textContent=String(ms).padStart(2,'0');
   }
   // requestAnimationFrame方式（モバイルで最も確実）
   function rafTick(){
