@@ -336,8 +336,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 140px;
-  height: 60px;
+  width: 160px;
+  height: 70px;
   z-index: 9999;
   background: transparent;
   cursor: default;
@@ -348,14 +348,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 <body>
 
 
-<!-- DEBUG PANEL（確認後削除） -->
-<div class="debug-panel" style="
-  position:fixed;bottom:70px;left:0;right:0;
-  background:rgba(0,0,0,0.85);color:#0f0;
-  font-size:11px;padding:8px 12px;z-index:9999;
-  max-height:120px;overflow-y:auto;
-  font-family:monospace;display:none;
-" id="dbg"></div>
 <!-- UNLOCK ANIMATION -->
 <div class="uf" id="uf">
   <div class="uf-inner">
@@ -480,44 +472,17 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 
 
 <script>
-// ══ 最初の1行：JSが動いているか確認 ═══════════════════════
-// ══ エラーキャッチ（デバッグ用） ════════════════════════════
-window.onerror=function(msg,src,line,col,err){
-  const d=document.querySelector('#dbg')||document.getElementById('dbg')||document.querySelector('.debug-panel');
-  if(d){d.style.display='block';d.innerHTML+='<div style="color:red">❌ JS ERROR: '+msg+' (line:'+line+')</div>';}
-  return false;
-};
-window.addEventListener('unhandledrejection',function(e){
-  const d=document.querySelector('#dbg')||document.getElementById('dbg')||document.querySelector('.debug-panel');
-  if(d){d.style.display='block';d.innerHTML+='<div style="color:red">❌ Promise error: '+e.reason+'</div>';}
-});
-
 // ══ COUNTDOWN ════════════════════════════════════════════════
 (function(){
-  // IIFEが実行されたことをすぐに表示
-  (function(){
-    const d=document.querySelector('#dbg')||document.querySelector('.debug-panel');
-    if(d){d.style.display='block';d.innerHTML+='<div style="color:cyan">▶ IIFE開始 '+Date.now()+'</div>';}
-
-  })();
-  // ページ閲覧イベント（再生しなかった人も把握できる）
-  // 初回アクセス時のみ記録（リロードでは重複しない）
-  if(!sessionStorage.getItem('ubase_pv')){
-    sessionStorage.setItem('ubase_pv','1');
-    setTimeout(function(){
-      sendEvent('page_view',{page:'48h_lp'});
-    },2000); // 2秒後に記録（直帰も含む）
-  }
   const KEY='ubase_start';
   const p=new URLSearchParams(location.search);
-
-  // ?reset=1 でLocalStorageを全リセット（テスト用）
+  // ?reset=1 でLocalStorageをリセット（無限ループしない）
   if(p.get('reset')==='1'){
     localStorage.clear();
-    window.location.reload();
+    sessionStorage.clear();
+    window.location.href=location.origin+'/';
     return;
   }
-
   const us=p.get('start');
   let s=us&&!isNaN(+us)?+us:+(localStorage.getItem(KEY)||0);
   if(!s){s=Date.now();localStorage.setItem(KEY,s);}
@@ -535,21 +500,13 @@ window.addEventListener('unhandledrejection',function(e){
     if(es2)es2.textContent=String(ss).padStart(2,'0');
     if(ems)ems.textContent=String(ms).padStart(2,'0');
   }
-  // requestAnimationFrame方式（モバイルで最も確実）
-  function rafTick(){
-    try{
-      tick();
-    }catch(e){
-      const dbgEl=document.getElementById('dbg');
-      if(dbgEl)dbgEl.innerHTML+='<div style="color:red">❌ tick error:'+e.message+'</div>';
-    }
-    requestAnimationFrame(rafTick);
-  }
+  function rafTick(){tick();requestAnimationFrame(rafTick);}
   rafTick();
-
-  // デバッグログ
-  const dbgEl=document.getElementById('dbg');
-  if(dbgEl)dbgEl.innerHTML+='<div style="color:#0f0">✅ カウントダウン開始 end='+end+'</div>';
+  // ページ閲覧イベント（初回のみ）
+  if(!sessionStorage.getItem('ubase_pv')){
+    sessionStorage.setItem('ubase_pv','1');
+    setTimeout(function(){sendEvent('page_view',{page:'48h_lp'});},2000);
+  }
 })();
 
 // ══ TRACKING ═════════════════════════════════════════════════
@@ -561,37 +518,30 @@ let USER_ID=localStorage.getItem(SESSION_KEY);
 if(!USER_ID){USER_ID=genSessionId();localStorage.setItem(SESSION_KEY,USER_ID);}
 
 function sendEvent(event,data){
-  const dbg=document.getElementById('dbg');
-  if(dbg){dbg.style.display='block';dbg.innerHTML+='<div>'+new Date().toLocaleTimeString()+' '+event+'</div>';}
-  if(GAS_URL.includes('YOUR_SCRIPT_ID')){
-    if(dbg)dbg.innerHTML+='<div style="color:red">GAS_URL未設定</div>';return;
-  }
+  if(GAS_URL.includes('YOUR_SCRIPT_ID'))return;
   const obj={uid:USER_ID,event:event,ts:new Date().toISOString()};
   Object.keys(data||{}).forEach(function(k){obj[k]=String(data[k]);});
   const url=GAS_URL+'?'+new URLSearchParams(obj).toString();
-  console.log('[UBASE] sendEvent:',event,url);
   const img=new Image();img.src=url;
 }
 function ga4Event(n,p){if(typeof gtag==='function')gtag('event',n,p);}
 
-// ══ 離脱トラッキング ══════════════════════════════════════════
+// ══ 離脱トラッキング（3重送信） ══════════════════════════════
 const activeVideo={num:0,pct:0};
 function updateActiveVideo(num,pct){activeVideo.num=num;activeVideo.pct=pct;}
 function sendExitEvent(){
   if(activeVideo.num>0&&localStorage.getItem('ubase_v'+activeVideo.num+'_done')!=='1'){
     const obj={uid:USER_ID,event:'video_exit',video:activeVideo.num,pct:activeVideo.pct,ts:new Date().toISOString()};
-    const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,String(v)]))).toString();
+    const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(function(e){return[e[0],String(e[1])];}))).toString();
     if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
       navigator.sendBeacon(GAS_URL+'?'+qs);
-      const img=new Image();img.src=GAS_URL+'?'+qs; // 二重送信で確実に
+      const img=new Image();img.src=GAS_URL+'?'+qs;
     }
   }
 }
-window.addEventListener('visibilitychange',function(){
-  if(document.visibilityState==='hidden') sendExitEvent();
-});
-window.addEventListener('beforeunload',function(){ sendExitEvent(); });
-window.addEventListener('pagehide',function(){ sendExitEvent(); });
+window.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')sendExitEvent();});
+window.addEventListener('beforeunload',function(){sendExitEvent();});
+window.addEventListener('pagehide',function(){sendExitEvent();});
 
 // ══ シーク管理 ════════════════════════════════════════════════
 const seekingTo={};
@@ -610,9 +560,11 @@ const pollingTimers={};
 function fmt(s){return Math.floor(s/60)+'分'+String(Math.floor(s%60)).padStart(2,'0')+'秒';}
 function setStatus(n,cls,txt){const el=document.getElementById('s'+n);if(el){el.className='vcs '+cls;el.textContent=txt;}}
 function setProgress(n,pct){
-  const b=document.getElementById('wp'+n+'b'),p=document.getElementById('wp'+n+'p'),w=document.getElementById('wp'+n+'w');
+  const b=document.getElementById('wp'+n+'b'),
+        pp=document.getElementById('wp'+n+'p'),
+        w=document.getElementById('wp'+n+'w');
   if(b)b.style.width=pct+'%';
-  if(p)p.textContent=Math.floor(pct)+'%';
+  if(pp)pp.textContent=Math.floor(pct)+'%';
   if(w)w.classList.add('vis');
 }
 function markDone(n){
@@ -635,16 +587,17 @@ function unlockEntry(){
   const ps=document.getElementById('ps4');if(ps)ps.classList.add('active');
 }
 function flash(text,sub){
-  document.getElementById('uf-text').textContent=text;
-  document.getElementById('uf-sub').textContent=sub;
-  const el=document.getElementById('uf');el.classList.add('active');
-  setTimeout(()=>el.classList.remove('active'),4300);
+  const ut=document.getElementById('uf-text');
+  const us=document.getElementById('uf-sub');
+  if(ut)ut.textContent=text;
+  if(us)us.textContent=sub;
+  const el=document.getElementById('uf');
+  if(el){el.classList.add('active');setTimeout(function(){el.classList.remove('active');},4300);}
 }
 
 // ══ リジューム ════════════════════════════════════════════════
 function doResume(n){
   const pl=players[n];if(!pl)return;
-  // セッション開始時に固定した位置を使用
   const RKEY='ubase_v'+n+'_resume_pos';
   const pos=+localStorage.getItem(RKEY)||+localStorage.getItem('ubase_v'+n+'_pos')||0;
   if(pos<=0)return;
@@ -658,15 +611,8 @@ function doResume(n){
   const rb=document.getElementById('rb'+n);if(rb)rb.classList.remove('vis');
 }
 
-// ══ PLAYER SETUP ═════════════════════════════════════════════
+// ══ 視聴時間処理 ════════════════════════════════════════════
 function processTime(n,cur,dur,watched){
-  // デバッグ（5秒ごとに表示）
-  if(Math.floor(cur)%5===0&&Math.floor(cur)>0&&Math.floor(cur)!==processTime._last){
-    processTime._last=Math.floor(cur);
-    const d2=document.querySelector('#dbg')||document.querySelector('.debug-panel');
-    if(d2)d2.innerHTML+='<div style="color:#0f0">▶ 動画'+n+' '+Math.floor(cur)+'秒 dur='+Math.floor(dur)+'</div>';
-  }
-  // シーク中は無視
   if(seekingTo[n]!==undefined){
     if(Math.abs(cur-seekingTo[n])<3)delete seekingTo[n];
     return;
@@ -679,7 +625,7 @@ function processTime(n,cur,dur,watched){
     const pct=Math.min(watched.size/dur*100,100);
     setProgress(n,pct);
     updateActiveVideo(n,Math.floor(pct));
-    // 25/50/75%通過時に記録（セッション毎・sessionStorageで重複防止）
+    // 25/50/75%通過（sessionStorageで重複防止）
     [25,50,75].forEach(function(m){
       const mk='sv'+n+'_m'+m;
       if(pct>=m&&!sessionStorage.getItem(mk)){
@@ -690,6 +636,7 @@ function processTime(n,cur,dur,watched){
   }
 }
 
+// ══ PLAYER SETUP ═════════════════════════════════════════════
 function setupPlayer(n,afterLoad){
   const area=document.getElementById('e'+n);
   if(n!==1){
@@ -697,56 +644,36 @@ function setupPlayer(n,afterLoad){
     area.innerHTML='<div class="ew" id="'+ewId+'" style="position:relative;"><div class="vimeo-logo-block"></div><iframe id="if'+n+'" src="https://player.vimeo.com/video/'+VID+'?badge=0&autopause=0&player_id=v'+n+'&app_id=58479&title=0&byline=0&portrait=0&pip=0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" allowfullscreen title="UBASE 動画'+n+'"></iframe><button class="fs-btn" data-ew="'+ewId+'" onclick="goFullscreen(this.dataset.ew)"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>全画面</button></div>';
   }
   delete seekingTo[n];
-
-  // セッション開始時のリジューム位置を固定
   const RKEY='ubase_v'+n+'_resume_pos';
   const savedPos=+localStorage.getItem('ubase_v'+n+'_pos')||0;
   if(!localStorage.getItem('ubase_v'+n+'_done')&&savedPos>10){
     localStorage.setItem(RKEY,String(savedPos));
   }
-
-  // プレイヤー初期化はready()で確実に待つ
   function initPlayer(){
     const iframe=document.getElementById('if'+n);
-    if(!iframe||typeof Vimeo==='undefined'){
-      console.warn('[UBASE] iframe or Vimeo not ready, retry...');
-      setTimeout(initPlayer,500);return;
-    }
+    if(!iframe||typeof Vimeo==='undefined'){setTimeout(initPlayer,500);return;}
     const player=new Vimeo.Player(iframe);
     players[n]=player;
-    console.log('[UBASE] Player created for video',n);
-
     let watched=new Set(JSON.parse(localStorage.getItem('ubase_v'+n+'_w')||'[]'));
     let dur=0,lastT=0,vDone=false;
-
-    // ready()を使って確実に初期化
     player.ready().then(function(){
-      console.log('[UBASE] ✅ Player ready for video',n);
-      const dbg=document.getElementById('dbg');
-      if(dbg){dbg.style.display='block';dbg.innerHTML+='<div>✅ 動画'+n+' Player Ready</div>';}
-
       player.getDuration().then(function(d){
         dur=d;
-        console.log('[UBASE] Duration video'+n+':',d);
-        // 保存済みの視聴進捗を復元して表示
+        // 保存済み進捗を復元表示
         if(dur>0&&watched.size>0){
           const savedPct=Math.min(watched.size/dur*100,100);
           setProgress(n,savedPct);
           updateActiveVideo(n,Math.floor(savedPct));
-          console.log('[UBASE] Restored progress video'+n+': '+Math.floor(savedPct)+'%');
         }
         if(afterLoad)afterLoad(player,d);
       });
-
-      // ── timeupdate（デスクトップ・一部Android）──
       player.on('timeupdate',function(data){
         const cur=data.seconds;
         if(Math.abs(cur-lastT)<0.1)return;
         lastT=cur;
         processTime(n,cur,dur,watched);
       });
-
-      // ── ポーリング（iOS Safari対応・確実に動く）──
+      // ポーリング（iOS/LINE対応）
       if(pollingTimers[n])clearInterval(pollingTimers[n]);
       pollingTimers[n]=setInterval(function(){
         player.getPaused().then(function(paused){
@@ -758,35 +685,24 @@ function setupPlayer(n,afterLoad){
           });
         });
       },800);
-
-      // ── 完了（ended + 90%以上）──
       player.on('ended',function(){
         if(dur<=0||vDone)return;
-        const pct=watched.size/dur;
-        if(pct<MIN_WATCH_PCT)return;
+        if(watched.size/dur<MIN_WATCH_PCT)return;
         vDone=true;
         if(pollingTimers[n])clearInterval(pollingTimers[n]);
-        if(n===1&&!st.v1done){st.v1done=true;localStorage.setItem('ubase_v1_done','1');sendEvent('video1_complete',{video:1});ga4Event('video_complete',{video_number:1});onDone(1);}
-        if(n===2&&!st.v2done){st.v2done=true;localStorage.setItem('ubase_v2_done','1');sendEvent('video2_complete',{video:2});ga4Event('video_complete',{video_number:2});onDone(2);}
-        if(n===3&&!st.v3done){st.v3done=true;localStorage.setItem('ubase_v3_done','1');sendEvent('video3_complete',{video:3,notify:'true'});ga4Event('video_complete',{video_number:3});onDone(3);}
+        if(n===1&&!st.v1done){st.v1done=true;localStorage.setItem('ubase_v1_done','1');sendEvent('video1_complete',{video:1});onDone(1);}
+        if(n===2&&!st.v2done){st.v2done=true;localStorage.setItem('ubase_v2_done','1');sendEvent('video2_complete',{video:2});onDone(2);}
+        if(n===3&&!st.v3done){st.v3done=true;localStorage.setItem('ubase_v3_done','1');sendEvent('video3_complete',{video:3,notify:'true'});onDone(3);}
       });
-
-      // ── 倍速防止 ──
       player.on('playbackratechange',function(d){if(d.playbackRate!==1)player.setPlaybackRate(1);});
-
-      // ── リジュームバナー表示 ──
       const resumePos=+localStorage.getItem(RKEY)||0;
       if(!localStorage.getItem('ubase_v'+n+'_done')&&resumePos>10){
         const rb=document.getElementById('rb'+n);
         const rbt=document.getElementById('rb'+n+'t');
         if(rb&&rbt){rbt.textContent=fmt(resumePos)+'から';rb.classList.add('vis');}
       }
-
-    }).catch(function(e){
-      console.error('[UBASE] Player ready error:',e);
-    });
+    }).catch(function(e){console.error('[UBASE] ready error:',e);});
   }
-
   setTimeout(initPlayer,300);
 }
 
@@ -817,9 +733,6 @@ function goFullscreen(ewId){
 const apiS=document.createElement('script');
 apiS.src='https://player.vimeo.com/api/player.js';
 apiS.onload=function(){
-  console.log('[UBASE] ✅ Vimeo API loaded');
-  const dbg=document.getElementById('dbg');
-  if(dbg){dbg.style.display='block';dbg.innerHTML+='<div>✅ Vimeo API OK</div>';}
   setupPlayer(1);
   if(st.v1done){markDone(1);unlockCard(2,false);unlockEntry();setupPlayer(2);}
   if(st.v2done){markDone(2);unlockCard(3,false);setupPlayer(3);}
@@ -828,11 +741,7 @@ apiS.onload=function(){
     const btn=document.getElementById('entry-btn');if(btn)btn.textContent='覚悟が決まった方はこちら';
   }
 };
-apiS.onerror=function(){
-  console.error('[UBASE] ❌ Vimeo API failed');
-  const dbg=document.getElementById('dbg');
-  if(dbg){dbg.style.display='block';dbg.innerHTML+='<div style="color:red">❌ Vimeo API 失敗</div>';}
-};
+apiS.onerror=function(){console.error('[UBASE] Vimeo API load failed');};
 document.head.appendChild(apiS);
 </script>
 </body>
