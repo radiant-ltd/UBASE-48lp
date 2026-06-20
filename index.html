@@ -479,14 +479,17 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
 
 
 <script>
+// ══ 最初の1行：JSが動いているか確認 ═══════════════════════
+document.title='JS動作中';  // タブのタイトルが変わればJSは動いている
+
 // ══ エラーキャッチ（デバッグ用） ════════════════════════════
 window.onerror=function(msg,src,line,col,err){
-  const d=document.getElementById('dbg');
+  const d=document.querySelector('#dbg')||document.getElementById('dbg')||document.querySelector('.debug-panel');
   if(d){d.style.display='block';d.innerHTML+='<div style="color:red">❌ JS ERROR: '+msg+' (line:'+line+')</div>';}
   return false;
 };
 window.addEventListener('unhandledrejection',function(e){
-  const d=document.getElementById('dbg');
+  const d=document.querySelector('#dbg')||document.getElementById('dbg')||document.querySelector('.debug-panel');
   if(d){d.style.display='block';d.innerHTML+='<div style="color:red">❌ Promise error: '+e.reason+'</div>';}
 });
 
@@ -494,8 +497,11 @@ window.addEventListener('unhandledrejection',function(e){
 (function(){
   // IIFEが実行されたことをすぐに表示
   (function(){
-    const d=document.getElementById('dbg');
-    if(d){d.style.display='block';d.innerHTML+='<div style="color:cyan">▶ IIFE開始</div>';}
+    const d=document.querySelector('#dbg')||document.querySelector('.debug-panel');
+    if(d){d.style.display='block';d.innerHTML+='<div style="color:cyan">▶ IIFE開始 '+Date.now()+'</div>';}
+    // ヘッダーのバッジを変更（JS確認用）
+    const badge=document.querySelector('.hdr-badge');
+    if(badge)badge.style.background='rgba(0,200,0,0.3)';
   })();
   const KEY='ubase_start';
   const p=new URLSearchParams(location.search);
@@ -646,7 +652,7 @@ function processTime(n,cur,dur,watched){
   // デバッグ（5秒ごとに表示）
   if(Math.floor(cur)%5===0&&Math.floor(cur)>0&&Math.floor(cur)!==processTime._last){
     processTime._last=Math.floor(cur);
-    const d2=document.getElementById('dbg');
+    const d2=document.querySelector('#dbg')||document.querySelector('.debug-panel');
     if(d2)d2.innerHTML+='<div style="color:#0f0">▶ 動画'+n+' '+Math.floor(cur)+'秒 dur='+Math.floor(dur)+'</div>';
   }
   // シーク中は無視
