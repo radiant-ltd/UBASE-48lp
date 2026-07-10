@@ -458,7 +458,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   <a href="#"
     class="be"
     onclick="
-      const url='https://jicoo.com/YOUR_JICOO_URL?uid='+USER_ID;
+      const url='https://www.jicoo.com/t/6UXf5gaeTF3x/e/VBtisqb8VdvF?uid='+USER_ID;
       sendEvent('entry_click',{notify:true});
       ga4Event('entry_click',{});
       window.open(url,'_blank');
@@ -570,7 +570,12 @@ window.addEventListener('pagehide',function(){sendExitEvent();});
 const seekingTo={};
 
 // ══ STATE ════════════════════════════════════════════════════
-const VID='1191024711';
+const VIDS={
+  1:'1208632043',
+  2:'1208632042',
+  3:'1208632044'
+};
+const VID=VIDS[1]; // 後方互換性のため残す
 const MIN_WATCH_PCT=0.90;
 const st={
   v1done:localStorage.getItem('ubase_v1_done')==='1',
@@ -770,6 +775,7 @@ apiS.onload=function(){
   if(st.v3done){
     markDone(3);
     const btn=document.getElementById('entry-btn');if(btn)btn.textContent='覚悟が決まった方はこちら';
+    updateLineBtn(3);
   }
 };
 apiS.onerror=function(){console.error('[UBASE] Vimeo API load failed');};
