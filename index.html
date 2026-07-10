@@ -412,7 +412,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
     </div>
     <div class="ew">
       <iframe id="if1"
-        src="https://player.vimeo.com/video/1191024711?badge=0&autopause=0&player_id=v1&app_id=58479&title=0&byline=0&portrait=0&pip=0&title=0&byline=0&portrait=0&dnt=1&title=0&byline=0&portrait=0&dnt=1"
+        src="https://player.vimeo.com/video/1208632043?badge=0&autopause=0&player_id=v1&app_id=58479&title=0&byline=0&portrait=0&pip=0"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
         title="UBASE 動画1"></iframe>
     </div>
@@ -677,7 +677,7 @@ function setupPlayer(n,afterLoad){
   const area=document.getElementById('e'+n);
   if(n!==1){
     const ewId='ew'+n;
-    area.innerHTML='<div class="ew" id="'+ewId+'" style="position:relative;"><div class="vimeo-logo-block"></div><iframe id="if'+n+'" src="https://player.vimeo.com/video/'+VID+'?badge=0&autopause=0&player_id=v'+n+'&app_id=58479&title=0&byline=0&portrait=0&pip=0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" allowfullscreen title="UBASE 動画'+n+'"></iframe><button class="fs-btn" data-ew="'+ewId+'" onclick="goFullscreen(this.dataset.ew)"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>全画面</button></div>';
+    area.innerHTML='<div class="ew" id="'+ewId+'" style="position:relative;"><div class="vimeo-logo-block"></div><iframe id="if'+n+'" src="https://player.vimeo.com/video/'+(VIDS[n]||VID)+'?badge=0&autopause=0&player_id=v'+n+'&app_id=58479&title=0&byline=0&portrait=0&pip=0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" allowfullscreen title="UBASE 動画'+n+'"></iframe><button class="fs-btn" data-ew="'+ewId+'" onclick="goFullscreen(this.dataset.ew)"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>全画面</button></div>';
   }
   delete seekingTo[n];
   const RKEY='ubase_v'+n+'_resume_pos';
