@@ -336,10 +336,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--navy);color:var(--wh
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 160px;
-  height: 70px;
+  width: 100px;
+  height: 40px;
   z-index: 9999;
-  background: #0D1B2E;
+  background: transparent;
   cursor: default;
   pointer-events: all;
 }
@@ -549,22 +549,38 @@ let videoPlayedThisSession=false; // 今のセッションで動画を再生し�
 function updateActiveVideo(num,pct){activeVideo.num=num;activeVideo.pct=pct;}
 let exitSent=false; // 重複送信防止フラグ
 function sendExitEvent(){
-  if(exitSent)return; // 重複送信防止
+  if(exitSent)return;
   exitSent=true;
-  if(!videoPlayedThisSession){
-    // 動画を一切見なかった場合のみpage_viewを記録
+  const pct=activeVideo.pct||0;
+  const num=activeVideo.num||0;
+  if(!videoPlayedThisSession||num===0){
+    // 動画を見なかった場合のみpage_viewを記録
     sendEvent('page_view',{page:'48h_lp'});
-  } else if(activeVideo.num>0&&localStorage.getItem('ubase_v'+activeVideo.num+'_done')!=='1'){
-    // 動画を見て離脱した場合はvideo_exitを記録
+    return;
+  }
+  if(localStorage.getItem('ubase_v'+num+'_done')==='1')return;
+  const obj={uid:USER_ID,event:'video_exit',video:num,pct:pct,ts:new Date().toISOString(),browser:browserName};
+  const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(function(e){return[e[0],String(e[1])];}))).toString();
+  const url=GAS_URL+'?'+qs;
+  if(GAS_URL.includes('YOUR_SCRIPT_ID'))return;
+  // 複数の方法で確実に送信
+  try{if(navigator.sendBeacon)navigator.sendBeacon(url);}catch(e){}
+  sendGet(url);
+}
+window.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden')sendExitEvent();
+});
+window.addEventListener('pagehide',function(){sendExitEvent();});
+window.addEventListener('beforeunload',function(){
+  // beforeunloadではsendBeaconのみ（imgはキャンセルされる）
+  if(!exitSent&&activeVideo.num>0&&videoPlayedThisSession){
     const obj={uid:USER_ID,event:'video_exit',video:activeVideo.num,pct:activeVideo.pct,ts:new Date().toISOString(),browser:browserName};
     const qs=new URLSearchParams(Object.fromEntries(Object.entries(obj).map(function(e){return[e[0],String(e[1])];}))).toString();
     if(!GAS_URL.includes('YOUR_SCRIPT_ID')){
-      sendGet(GAS_URL+'?'+qs);
+      try{navigator.sendBeacon(GAS_URL+'?'+qs);}catch(e){}
     }
   }
-}
-window.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')sendExitEvent();});
-window.addEventListener('pagehide',function(){sendExitEvent();});
+});
 
 // ══ シーク管理 ════════════════════════════════════════════════
 const seekingTo={};
